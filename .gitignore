@@ -1,0 +1,27 @@
+# Pliki systemowe macOS
+.DS_Store
+._*
+
+# Zależności i cele kompilacji (odtwarzane poleceniami instalacji i budowania)
+node_modules/
+target/
+dist/
+out/
+*.tsbuildinfo
+
+# Dane, logi i nagrania: mogą zawierać prywatne informacje
+*.sqlite
+*.sqlite-*
+*.db
+*.csv
+*.xlsx
+*.wav
+*.mp3
+*.log
+paragony/
+.env
+.env.*
+
+# Prywatne foldery: Exporter ma własny plik z danymi, a ZIM-OG ma osobne repozytorium
+/Exporter/
+/ZIM-OG/

@@ -1,0 +1,13 @@
+{
+  "name": "klaudiusz",
+  "version": "0.1.0",
+  "description": "Klaudiusz: asystent głosowy działający z ikoną w pasku menu (Tauri 2)",
+  "private": true,
+  "scripts": {
+    "tauri": "tauri",
+    "app:debug": "tauri build --debug --bundles app && codesign --force --sign - --identifier app.klaudiusz.assistant ~/Library/Caches/klaudiusz-target/debug/bundle/macos/Klaudiusz.app"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0"
+  }
+}

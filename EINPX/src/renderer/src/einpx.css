@@ -1,0 +1,1465 @@
+:root {
+  --accent: #8b5cf6;
+  --on-accent: #fff;
+  --bg: #ffffff;
+  --bg-elevated: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --border: #8883;
+  --hover: #8882;
+  --danger: #dc2626;
+  --done: #16a34a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --accent: #2dd4bf;
+    --on-accent: #042f2e;
+    --bg: #18181b;
+    --bg-elevated: #232327;
+    --text: #e8e8ea;
+    --muted: #9ca3af;
+    --danger: #f87171;
+    --done: #4ade80;
+  }
+}
+
+:root[data-theme='dark'] {
+  --accent: #2dd4bf;
+  --on-accent: #042f2e;
+  --bg: #18181b;
+  --bg-elevated: #232327;
+  --text: #e8e8ea;
+  --muted: #9ca3af;
+  --danger: #f87171;
+  --done: #4ade80;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter Variable', 'Geist Variable', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 12px;
+}
+
+.einpx {
+  min-height: 100vh;
+  padding: 0 16px 16px;
+}
+
+.einpx-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 30px 4px 14px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.einpx-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.einpx-title h1 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+}
+
+.einpx-btn {
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.einpx-btn:hover {
+  background: #8882;
+}
+
+.einpx-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+
+.einpx-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.einpx-error {
+  margin: 0 4px 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 13px;
+}
+
+
+.einpx-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  padding: 14px 16px;
+  min-width: 0;
+}
+
+.einpx-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.einpx-card-head h2 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 620;
+}
+
+.einpx-tag {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  white-space: nowrap;
+}
+
+.einpx-tag.event {
+  color: var(--accent);
+}
+
+.einpx-section-error {
+  color: var(--danger);
+  font-size: 13px;
+  margin: 4px 0;
+}
+
+.einpx-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.einpx-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.einpx-row.is-done .einpx-row-title {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+.einpx-row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.einpx-mail {
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+.einpx-mail-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.einpx-mail-from {
+  font-weight: 600;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.einpx-mail-subject,
+.einpx-mail-account {
+  overflow-wrap: anywhere;
+}
+
+.einpx-mail-date {
+  white-space: nowrap;
+}
+
+.einpx-finance {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.einpx-finance > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.einpx-finance dt {
+  color: var(--muted);
+}
+
+.einpx-finance dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.einpx-add {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+
+.einpx-add input {
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 8px;
+  padding: 7px 10px;
+  min-width: 0;
+}
+
+.einpx-add-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.einpx-seg {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  justify-self: start;
+}
+
+.einpx-seg button {
+  border: 0;
+  background: transparent;
+  padding: 5px 12px;
+  cursor: pointer;
+}
+
+.einpx-seg button.is-on {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.einpx-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.einpx-left,
+.einpx-right {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .einpx-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.einpx-unread {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.einpx-unread-count {
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.einpx-clock {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.einpx-clock-time {
+  display: flex;
+  flex-direction: column;
+}
+
+.einpx-clock-hour {
+  font-size: 26px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.einpx-clock-weather {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-align: right;
+}
+
+.einpx-clock-temp {
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.einpx-finance dl,
+.einpx-finance {
+  margin: 0;
+}
+
+.einpx-btn.small-btn {
+  padding: 3px 9px;
+}
+
+@media (max-width: 760px) {
+    }
+
+/* Plan dnia (kopia osi czasu z CTHX) */
+/* Plan dnia: oś 00–24, zadania jako wiersze z checkboxem, wydarzenia jako bloki czasu */
+.einpx-plan {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-left: 1px solid var(--border);
+}
+.einpx-plan-head {
+  padding: 14px 16px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: capitalize;
+  border-bottom: 1px solid var(--border);
+}
+.einpx-plan-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.einpx-plan-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.einpx-plan-group .einpx-plan-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #8882;
+  font-size: 12px;
+}
+.einpx-plan-group .einpx-plan-time {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.einpx-plan-untimed {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.einpx-plan-label {
+  font-size: 11px;
+  color: var(--muted);
+  margin-right: 4px;
+}
+.einpx-plan-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+.einpx-plan-canvas {
+  position: relative;
+  margin-left: 52px;
+  margin-right: 12px;
+}
+.einpx-hour {
+  position: absolute;
+  left: -52px;
+  right: 0;
+  height: 0;
+  border-top: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+}
+.einpx-hour span {
+  position: absolute;
+  top: -7px;
+  left: 0;
+  width: 40px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.einpx-now {
+  position: absolute;
+  left: -6px;
+  right: 0;
+  height: 2px;
+  background: var(--danger);
+  border-radius: 2px;
+  z-index: 2;
+  pointer-events: none;
+}
+.einpx-plan-task,
+.einpx-plan-event,
+.einpx-plan-chip {
+  position: absolute;
+  box-sizing: border-box;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+}
+.einpx-plan-task {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #8882;
+  font-size: 12px;
+  overflow: hidden;
+  z-index: 1;
+}
+.einpx-plan-task.is-done .einpx-plan-title {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+.einpx-plan-event {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 5px 8px 4px 10px;
+  border: 0;
+  border-left: 3px solid var(--accent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  cursor: pointer;
+  overflow: hidden;
+  z-index: 1;
+}
+.einpx-plan-event:hover {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+.einpx-plan-title {
+  border: 0;
+  padding: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.einpx-plan-time {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.einpx-plan-task .einpx-plan-time {
+  margin-left: auto;
+}
+.einpx-plan-desc {
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.einpx-plan-chip {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: #8882;
+  font-size: 12px;
+}
+.einpx-plan-chip.is-done .einpx-plan-title {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.einpx-check {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.einpx-plan-scroll {
+  height: calc(100vh - 300px);
+  min-height: 300px;
+}
+
+.einpx-card-head-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.einpx-btn.plus-btn {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+  line-height: 1;
+  border-radius: 999px;
+}
+
+.einpx-plan-card {
+  padding: 12px 14px;
+}
+
+.einpx-plan-card .einpx-card-head h2 {
+  font-size: 14px;
+}
+
+.einpx-plan-card .einpx-tag {
+  text-transform: capitalize;
+}
+
+.einpx-plan-card .einpx-plan-task,
+.einpx-plan-card .einpx-plan-event {
+  font-size: 11px;
+}
+
+.einpx-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 16px;
+}
+
+.einpx-modal {
+  width: min(420px, 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  padding: 14px 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.einpx-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.einpx-modal-head h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 620;
+}
+.einpx-plan-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.einpx-plan-nav .einpx-plan-date {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 620;
+  text-transform: capitalize;
+}
+.einpx-plan {
+  border-left: 0;
+}
+.einpx-plan-head {
+  border-bottom: 0;
+  padding: 0 0 8px;
+}
+.einpx-plan-task, .einpx-plan-event { min-width: 0; }
+
+/* Bateria i dyski: jeden wiersz */
+.einpx-sys-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+}
+
+.einpx-sys-item {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 110px;
+}
+
+.einpx-sys-label {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.einpx-sys-value {
+  font-weight: 620;
+  font-variant-numeric: tabular-nums;
+  justify-self: end;
+}
+
+.einpx-sys-value.is-full {
+  color: var(--danger);
+}
+
+.einpx-sys-item .small {
+  grid-column: 1 / -1;
+}
+
+.einpx-meter {
+  grid-column: 1 / -1;
+  display: block;
+  height: 4px;
+  border-radius: 2px;
+  background: #8882;
+  overflow: hidden;
+}
+
+.einpx-meter > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.einpx-modal .einpx-add {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+}
+
+/* ===== Finalny wygląd (Linear / Apple): ciemne karty o jednolitym tle ===== */
+:root,
+:root[data-theme='light'] {
+  color-scheme: dark;
+  --bg: #050506;
+  --bg-elevated: #0c0c0e;
+  --text: #ededf0;
+  --muted: #7f7f89;
+  --accent: #2dd4bf;
+  --on-accent: #04201d;
+  --border: rgba(255, 255, 255, 0.06);
+  --danger: #f87171;
+}
+
+body {
+  background: var(--bg);
+}
+
+.einpx-card {
+  background: #0c0c0e;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 14px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02) inset;
+}
+
+.einpx-card-head h2 {
+  letter-spacing: -0.01em;
+}
+
+.einpx-tag {
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.einpx-btn {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.einpx-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.einpx-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* Bateria i dyski: siatka kafelków */
+.einpx-sys-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.einpx-sys-tile {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  min-width: 0;
+}
+
+.einpx-sys-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.einpx-sys-icon {
+  flex: none;
+  color: var(--accent);
+}
+
+.einpx-sys-label {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.einpx-sys-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.einpx-sys-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.einpx-sys-tile .einpx-meter {
+  margin-top: 6px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* Poczta: odstępy i akcent licznika */
+.einpx-unread {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.einpx-unread-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 26px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: rgba(45, 212, 191, 0.12);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+
+.einpx-unread > .muted {
+  font-size: 13px;
+}
+
+.einpx-list {
+  gap: 0;
+}
+
+.einpx-mail {
+  padding: 10px 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.einpx-mail:last-child {
+  border-bottom: 0;
+}
+
+.einpx-mail-top {
+  margin-bottom: 2px;
+}
+
+.einpx-mail-from {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.einpx-mail-subject {
+  font-size: 13px;
+  color: var(--text);
+  opacity: 0.85;
+  line-height: 1.35;
+}
+
+.einpx-mail-account {
+  margin-top: 2px;
+}
+
+/* Oś czasu: płynny hover, spójne proporcje kafelków */
+.einpx-plan-task,
+.einpx-plan-event {
+  transition: background-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+}
+
+.einpx-plan-task {
+  height: 28px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 0 8px;
+  gap: 8px;
+}
+
+.einpx-plan-task:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 14px -6px rgba(0, 0, 0, 0.6);
+  transform: translateY(-1px);
+}
+
+.einpx-plan-event {
+  border-radius: 8px;
+  padding: 5px 9px 5px 11px;
+  background: rgba(45, 212, 191, 0.12);
+  border: 1px solid rgba(45, 212, 191, 0.12);
+  border-left: 3px solid var(--accent);
+}
+
+.einpx-plan-event:hover {
+  background: rgba(45, 212, 191, 0.2);
+  box-shadow: 0 6px 18px -8px rgba(45, 212, 191, 0.5);
+  transform: translateY(-1px);
+}
+
+.einpx-plan-task.is-done,
+.einpx-plan-event.is-done {
+  opacity: 0.55;
+}
+
+.einpx-plan-task .einpx-plan-title,
+.einpx-plan-event .einpx-plan-title {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.einpx-plan-event .einpx-plan-time {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.einpx-plan-chip {
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.einpx-plan-strip {
+  gap: 10px;
+  padding: 2px 0 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.einpx-hour span {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* ===== Dopracowanie detali ===== */
+
+/* Kafelki sprzętu: równa wysokość, zwarta siatka */
+.einpx-sys-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 1fr;
+  gap: 8px;
+}
+
+.einpx-sys-tile {
+  height: 100%;
+  min-height: 116px;
+  grid-template-rows: auto auto auto 1fr auto;
+  align-content: start;
+  gap: 2px;
+  padding: 12px 14px 14px;
+}
+
+.einpx-sys-head {
+  margin-bottom: 6px;
+}
+
+.einpx-sys-value {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.einpx-sys-sub {
+  margin-bottom: 8px;
+}
+
+.einpx-sys-tile .einpx-meter {
+  margin-top: auto;
+}
+
+/* Status systemu obok nazwy */
+.einpx-status {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(45, 212, 191, 0.45);
+  opacity: 0.6;
+  flex: none;
+}
+
+.einpx-status.is-error {
+  background: var(--danger);
+  box-shadow: 0 0 8px rgba(248, 113, 113, 0.45);
+}
+
+.einpx-title {
+  gap: 10px;
+}
+
+/* Kafelki wydarzeń: subtelny, głęboki gradient o niskiej przezroczystości */
+.einpx-plan-event {
+  background:
+    linear-gradient(160deg, rgba(45, 212, 191, 0.03) 0%, rgba(45, 212, 191, 0.01) 100%),
+    rgba(45, 212, 191, 0.06);
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.06) inset;
+}
+
+.einpx-plan-event:hover {
+  background:
+    linear-gradient(160deg, rgba(45, 212, 191, 0.05) 0%, rgba(45, 212, 191, 0.02) 100%),
+    rgba(45, 212, 191, 0.1);
+}
+
+/* ===== Kolorystyka: główne tło #09090b, karty #0c0c0e ===== */
+:root,
+:root[data-theme='light'] {
+  --bg: #09090b;
+  --bg-elevated: #0c0c0e;
+}
+
+body {
+  background: #09090b;
+}
+
+.einpx-card {
+  background: #0c0c0e;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Finanse: kwoty monospace, wiersz klikalny z mikro-ikoną */
+.einpx-fin-list {
+  display: grid;
+  gap: 2px;
+}
+
+.einpx-fin-row {
+  display: grid;
+  grid-template-columns: 1fr auto 14px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 8px;
+  margin: 0 -8px;
+  width: calc(100% + 16px);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.18s ease;
+}
+
+.einpx-fin-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.einpx-fin-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.einpx-fin-amount {
+  font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+  font-size: 14px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.einpx-fin-go {
+  color: var(--accent);
+  opacity: 0;
+  transform: translate(-3px, 3px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.einpx-fin-row:hover .einpx-fin-go,
+.einpx-fin-row:focus-visible .einpx-fin-go {
+  opacity: 0.8;
+  transform: translate(0, 0);
+}
+
+/* Nawyki: ultracienki pasek postępu obok licznika */
+.einpx-habit {
+  grid-template-columns: 18px minmax(0, 1fr) auto 64px;
+}
+
+.einpx-habit-count {
+  font-family: 'SF Mono', 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.einpx-habit-bar {
+  display: block;
+  height: 2px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.einpx-habit-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+
+/* Szybka notatka */
+.einpx-notes {
+  padding: 12px 14px;
+}
+
+.einpx-note-form {
+  display: grid;
+  gap: 8px;
+}
+
+.einpx-note-form textarea {
+  resize: vertical;
+  min-height: 52px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.18s ease;
+}
+
+.einpx-note-form textarea:focus {
+  border-color: rgba(45, 212, 191, 0.35);
+}
+
+.einpx-note-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.einpx-note-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+.einpx-note-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 18px;
+  align-items: baseline;
+  gap: 8px;
+  padding: 7px 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 13px;
+}
+
+.einpx-note-text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.einpx-note-meta {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.einpx-note-del {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 15px;
+  line-height: 1;
+  opacity: 0.5;
+}
+
+.einpx-note-del:hover {
+  color: var(--danger);
+  opacity: 1;
+}
+
+/* Oś czasu: widok na ok. 10 godzin, reszta doby przewijana */
+.einpx-plan-scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+}
+
+/* Przyczyna długiej osi: flex-basis 0% z kopii CTHX ignorował wysokość; teraz widok ma stałą wysokość (10 godzin) */
+.einpx-plan-scroll {
+  flex: none;
+  flex-basis: auto;
+  min-height: 0;
+  max-height: none;
+}
+
+/* ===== Okno „Dodaj na dziś”: elitarny wygląd ===== */
+.einpx-modal-backdrop {
+  background: rgba(3, 3, 5, 0.55);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.einpx-modal {
+  width: min(440px, 100%);
+  background: #111114;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 18px 20px 20px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(0, 0, 0, 0.4);
+  animation: einpx-modal-in 0.22s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+@keyframes einpx-modal-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.einpx-modal-head {
+  margin-bottom: 14px;
+}
+
+.einpx-modal-head h3 {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Segmented control: pigułka, aktywna zakładka z turkusowym glow */
+.einpx-modal .einpx-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  justify-self: stretch;
+}
+
+.einpx-modal .einpx-seg button {
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.25s ease;
+}
+
+.einpx-modal .einpx-seg button:hover:not(.is-on) {
+  color: var(--text);
+}
+
+.einpx-modal .einpx-seg button.is-on {
+  background: #2dd4bf;
+  color: #03201c;
+  font-weight: 600;
+  box-shadow: 0 0 14px -2px rgba(45, 212, 191, 0.55), 0 0 0 1px rgba(45, 212, 191, 0.4);
+}
+
+/* Pola: spoczynek wygładzony, focus z turkusową ramką i poświatą */
+.einpx-modal .einpx-add {
+  gap: 10px;
+}
+
+.einpx-modal .einpx-add input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 14px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.25s ease, background-color 0.2s ease;
+}
+
+.einpx-modal .einpx-add input::placeholder {
+  color: rgba(255, 255, 255, 0.28);
+}
+
+.einpx-modal .einpx-add input:focus {
+  border-color: rgba(45, 212, 191, 0.7);
+  background: rgba(45, 212, 191, 0.03);
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.25), 0 0 18px -4px rgba(45, 212, 191, 0.35);
+}
+
+.einpx-modal .einpx-add-row {
+  gap: 10px;
+}
+
+.einpx-modal .einpx-add input[type='time'] {
+  color-scheme: dark;
+}
+
+/* Przycisk główny: centralny punkt, świetlisty akcent, mocniejsza typografia */
+.einpx-modal .einpx-btn.primary {
+  margin-top: 6px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  background: linear-gradient(180deg, #34e0c8 0%, #2dd4bf 100%);
+  border: 0;
+  color: #03201c;
+  box-shadow: 0 0 22px -4px rgba(45, 212, 191, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: box-shadow 0.25s ease, transform 0.15s ease, filter 0.2s ease;
+}
+
+.einpx-modal .einpx-btn.primary:hover:not(:disabled) {
+  box-shadow: 0 0 30px -2px rgba(45, 212, 191, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  filter: brightness(1.05);
+}
+
+.einpx-modal .einpx-btn.primary:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+.einpx-modal .einpx-btn.primary:disabled {
+  box-shadow: none;
+  background: rgba(45, 212, 191, 0.25);
+  color: rgba(3, 32, 28, 0.6);
+}
+
+/* Kafelki sprzętu w jednym wierszu (3 w rzędzie), ciaśniej */
+.einpx-sys-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.einpx-sys-tile {
+  min-height: 0;
+  padding: 9px 10px 10px;
+  gap: 1px;
+  border-radius: 9px;
+}
+
+.einpx-sys-head {
+  gap: 5px;
+  margin-bottom: 4px;
+}
+
+.einpx-sys-head .einpx-sys-icon {
+  width: 12px;
+  height: 12px;
+}
+
+.einpx-sys-label {
+  font-size: 11px;
+}
+
+.einpx-sys-value {
+  font-size: 17px;
+}
+
+.einpx-sys-sub {
+  font-size: 10px;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.einpx-sys-tile .einpx-meter {
+  height: 2px;
+}
+
+/* Finanse i nawyki: jedna karta, dwie równe połowy */
+.einpx-pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 1px minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+}
+
+.einpx-pair-col {
+  min-width: 0;
+  padding: 14px 16px;
+}
+
+.einpx-pair-divider {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.einpx-pair .einpx-habit {
+  grid-template-columns: 16px minmax(0, 1fr) auto 40px;
+  gap: 8px;
+}
+
+.einpx-pair .einpx-habit-bar {
+  width: 40px;
+}
+
+/* Finanse: tylko hover (bez akcji po kliknięciu) */
+.einpx-fin-row {
+  cursor: default;
+}
+
+/* Nawyki: cały wiersz klikalny, z efektem hover */
+.einpx-habit {
+  cursor: pointer;
+  padding: 8px;
+  margin: 0 -8px;
+  width: calc(100% + 16px);
+  border-radius: 8px;
+  transition: background-color 0.18s ease;
+}
+
+.einpx-habit:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Zakres temperatury: mała, przyciemniona czcionka obok aktualnej */
+.einpx-clock-range {
+  font-size: 11px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  margin-left: 6px;
+  opacity: 0.8;
+}
+
+/* Zaznaczanie na osi: cały wpis klika się, wykonane zmienia odcień */
+.einpx-plan-task,
+.einpx-plan-event,
+.einpx-plan-chip {
+  cursor: pointer;
+  user-select: none;
+}
+
+.einpx-plan-event.is-done {
+  opacity: 1;
+  background:
+    linear-gradient(160deg, rgba(148, 163, 184, 0.05) 0%, rgba(148, 163, 184, 0.015) 100%),
+    rgba(148, 163, 184, 0.08);
+  border-color: rgba(148, 163, 184, 0.12);
+  border-left-color: rgba(148, 163, 184, 0.6);
+  box-shadow: none;
+}
+
+.einpx-plan-event.is-done .einpx-plan-title {
+  opacity: 0.7;
+}
+
+/* Tag aplikacji jako przycisk */
+.einpx-tag-link {
+  background: transparent;
+  font: inherit;
+  font-size: 11px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+
+.einpx-tag-link:hover {
+  color: var(--accent);
+  border-color: rgba(45, 212, 191, 0.4);
+}
+
+.einpx-tag-link.is-error {
+  color: var(--danger);
+  border-color: rgba(248, 113, 113, 0.4);
+}

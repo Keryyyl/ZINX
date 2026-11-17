@@ -1,0 +1,37 @@
+[package]
+name = "zim"
+version = "0.2.0"
+description = "Klient mailowy: wiele skrzynek, tagi, reguły i klasyfikacja LLM"
+edition = "2021"
+
+[lib]
+name = "zim_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rusqlite = { version = "0.41.1", features = ["bundled"] }
+mail-parser = "1.0.1"
+async-trait = "0.1.92"
+futures = "0.3.34"
+async-imap = { version = "0.12.0", default-features = false, features = ["runtime-tokio"] }
+tokio = { version = "1.54.1", features = ["net", "time", "rt", "macros", "sync", "process"] }
+tokio-rustls = "0.26.6"
+rustls-pki-types = "1.15.1"
+webpki-roots = "1.0.11"
+lettre = { version = "0.11.23", default-features = false, features = ["builder", "smtp-transport", "tokio1", "tokio1-rustls-tls", "aws-lc-rs", "hostname"] }
+tauri-plugin-dialog = "2.8.4"
+uuid = { version = "1.29.0", features = ["v4"] }
+opener = "0.9.0"
+base64 = "0.23.1"
+quoted_printable = "0.5.2"
+regex = "1.13.1"
+reqwest = { version = "0.13.5", default-features = false, features = ["json", "rustls"] }
+
+[target.'cfg(any(target_os = "macos", target_os = "windows"))'.dependencies]
+keyring = { version = "3", features = ["apple-native", "windows-native"] }

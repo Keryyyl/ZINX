@@ -1,0 +1,3 @@
+# Dysk exFAT dokłada pliki ._* (AppleDouble), które psują budowanie; cel kompilacji trzymamy na dysku systemowym
+[build]
+target-dir = "/Users/karol/Library/Caches/zim-target"
