@@ -1,53 +1,58 @@
 # ZINX
 
-Zbiór osobistych aplikacji na macOS, które mają działać razem. ZIM jest też planowany na Windows, iOS i Androida.
-Wszystkie dane są przechowywane lokalnie, na komputerze, w bazach SQLite. Nic nie trafia do chmury, poza tym, czego wymaga samo działanie (np. pobieranie poczty, pogoda).
+🇵🇱 [Wersja polska](README.pl.md)
 
-Każda aplikacja to osobny projekt z własnym `CLAUDE.md`, opisującym architekturę i zasady.
+ZINX is a set of personal desktop apps for macOS that work together. Each app has its own local SQLite database, and nothing leaves the machine except what the features need, such as fetching mail or weather. The AI features run on local models: a language model through [Ollama](https://ollama.com) and speech recognition through [whisper.cpp](https://github.com/ggerganov/whisper.cpp).
 
-## Aplikacje
+Each app is a separate project with its own `CLAUDE.md`, which describes its architecture and rules.
 
-| Projekt | Co robi |
+## Apps
+
+| Project | What it does |
 |---|---|
-| **[ZIM](ZIM/)** | Klient poczty. Pobiera skrzynkę, sortuje wiadomości (lokalny model AI), wysyła maile i pilnuje kolejki wysyłki. Wersja Tauri 2 poprzedniej aplikacji Electron (`ZIM-OG`, poza repozytorium). |
-| **[CTHX](CTHX/)** | Planer: kalendarz miesiąca, lista zadań i wydarzeń dnia, habit tracker i tablica kanban. Obsługuje powtarzalne wpisy i urodziny z kontaktów. |
-| **[PFMX](PFMX/)** | Finanse osobiste: konta, budżet w kopertach, płatności cykliczne i subskrypcje, gotówka, inwestycje. Importuje historię z banku, kategoryzuje wydatki lokalnym modelem i przypina paragony do transakcji. |
-| **[EINPX](EINPX/)** | Dashboard: jedno okno z podglądem poczty (ZIM), salda i wydatków (PFMX) oraz planu dnia (CTHX), plus pogoda i szybkie notatki. |
-| **[Klaudiusz](Klaudiusz/)** | Asystent głosowy po polsku, działający w pasku menu. Słucha słowa „Klaudiusz”, odczytuje dane z pozostałych aplikacji, dodaje wpisy po potwierdzeniu głosem, przypomina i obsługuje skróty klawiszowe. |
-| **Exporter** | Lokalny skrypt Pythona, który pobiera historię wyciągów z banku do pliku CSV. Nie jest częścią repozytorium, bo działa na prywatnych danych logowania. |
+| **[ZIM](ZIM/)** | Mail client. Syncs mailboxes, sorts messages with a local AI model, sends mail and manages an outgoing queue. Tauri 2 port of the earlier Electron app (`ZIM-OG`, not included here). |
+| **[CTHX](CTHX/)** | Planner: month calendar, tasks and events for each day, habit tracker and a kanban board. Supports repeating entries and birthdays from contacts. |
+| **[PFMX](PFMX/)** | Personal finance: accounts, a budget in envelopes, recurring payments and subscriptions, cash tracking, investments. Imports bank history, categorises expenses with a local model, and attaches receipts to transactions. |
+| **[EINPX](EINPX/)** | Dashboard: one window showing mail, balances and spending from PFMX, the day plan from CTHX, plus weather and quick notes. |
+| **[Klaudiusz](Klaudiusz/)** | Polish voice assistant in the macOS menu bar. Listens for its name, reads data from the other apps, adds entries after a spoken confirmation, sends reminders and has keyboard shortcuts. |
+| **Exporter** | A private Python script that downloads bank statement history to CSV. It is not part of this repository because it works with personal login data. |
 
-## Jak to się łączy
+## How they fit together
 
-- Każda aplikacja ma własną bazę SQLite w `~/Library/Application Support/app.<nazwa>/`.
-- EINPX, Klaudiusz i inne czytają te bazy tylko do odczytu, a zapisy idą wyłącznie przez właściwą aplikację lub przez jawne potwierdzenie użytkownika.
-- Wspólny wygląd: ZIM, CTHX, PFMX i EINPX używają tego samego stylu CSS.
+- Each app keeps its data in its own SQLite database under `~/Library/Application Support/`.
+- Apps that read other apps' data (EINPX, Klaudiusz) open those databases read-only. Writes go through the owning app, and only after the user confirms them.
+- ZIM, CTHX, PFMX and EINPX share one visual style, so they look like parts of the same system.
 
-## Stos technologiczny
+## Tech stack
 
-- **Tauri 2** (Rust + WebView) dla ZIM, CTHX, PFMX, EINPX i Klaudiusza.
-- **React + Vite + TypeScript** w warstwie interfejsu.
-- **SQLite** (`rusqlite`) jako baza danych.
-- **Ollama** (lokalne modele językowe) i **whisper.cpp** (rozpoznawanie mowy) do funkcji AI.
+- **Tauri 2** (Rust backend, WebView frontend) for ZIM, CTHX, PFMX, EINPX and Klaudiusz.
+- **React, Vite and TypeScript** for the interfaces.
+- **SQLite** (via `rusqlite`) for storage.
+- **Ollama** and **whisper.cpp** for local AI features.
 
-## Uruchomienie
+## Running an app
 
-Każdy projekt uruchamia się osobno, w jego katalogu:
+Each project runs separately, from its own folder:
 
 ```bash
 pnpm install
 pnpm tauri dev
 ```
 
-Testy rdzenia w Rust:
+Core tests (Rust):
 
 ```bash
-cd <projekt>/src-tauri && cargo test
+cd <project>/src-tauri && cargo test
 ```
 
-Wymagania: macOS, Node.js, Rust (rustup) i `pnpm`. Klaudiusz dodatkowo potrzebuje Ollamy i whisper.cpp.
+Requirements: macOS, Node.js, Rust (via rustup) and pnpm. Klaudiusz also needs Ollama and whisper.cpp.
 
-## Prywatność
+## Privacy
 
-- Repozytorium nie zawiera haseł, kluczy API, numerów kont ani prywatnych baz danych. Dane testowe używają przykładowych wartości.
-- Hasła do poczty są przechowywane w schowku systemowym (Keychain), nie w plikach.
-- Folder z danymi osobistymi eksportu bankowego i repozytorium `ZIM-OG` są wykluczone w `.gitignore`.
+- The repository contains no passwords, API keys, bank account numbers or private databases. Test data uses example values.
+- Mail passwords are kept in the system keychain, not in files.
+- The bank export script, the `ZIM-OG` repository and personal data files are excluded by `.gitignore`.
+
+## Status
+
+These are personal projects built and used day to day. They are shared as a portfolio, not as packaged products. Expect rough edges.
