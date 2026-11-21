@@ -3,8 +3,17 @@
 
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use cpal::{Sample, SampleFormat, SizedSample};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{self, RecvTimeoutError};
 use std::time::Duration;
+
+/// Ustawiane przez `cancel_recording`, przerywa trwające nagrywanie
+static CANCEL: AtomicBool = AtomicBool::new(false);
+
+/// Przerywa trwające nagrywanie (np. po wyłączeniu czatu głosowego). Nagranie zwraca wtedy `None`.
+pub fn cancel_recording() {
+    CANCEL.store(true, Ordering::SeqCst);
+}
 
 pub const TARGET_RATE: u32 = 16_000;
 const FRAME_MS: usize = 30;
@@ -19,6 +28,7 @@ const SPEECH_RMS: f32 = 0.008;
 
 /// Nagrywa jedną wypowiedź. `Ok(None)` gdy nikt nic nie powiedział.
 pub fn record_utterance() -> Result<Option<Vec<f32>>, String> {
+    CANCEL.store(false, Ordering::SeqCst);
     let host = cpal::default_host();
     let device = host.default_input_device().ok_or("Nie znaleziono mikrofonu")?;
     let config = device.default_input_config().map_err(|e| format!("Mikrofon: {e}"))?;
@@ -56,13 +66,16 @@ pub fn record_utterance() -> Result<Option<Vec<f32>>, String> {
             }
         }
         let elapsed_ms = pos * 1000 / rate as usize;
+        if CANCEL.load(Ordering::SeqCst) {
+            break;
+        }
         if (speech && silent_ms >= SILENCE_END_MS) || elapsed_ms >= MAX_MS || (!speech && elapsed_ms >= WAIT_START_MS) {
             break;
         }
     }
     drop(stream);
 
-    if !speech {
+    if !speech || CANCEL.load(Ordering::SeqCst) {
         return Ok(None);
     }
     Ok(Some(resample(&all, rate)))

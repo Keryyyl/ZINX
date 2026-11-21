@@ -194,12 +194,23 @@ pub fn definitions() -> Vec<ToolDef> {
 
 /// Opisy narzędzi w formacie, jaki przyjmuje Ollama (`tools` w /api/chat)
 pub fn ollama_tools() -> Value {
-    Value::Array(
-        definitions()
-            .into_iter()
-            .map(|d| json!({"type": "function", "function": {"name": d.name, "description": d.description, "parameters": d.parameters}}))
-            .collect(),
-    )
+    Value::Array(definitions().into_iter().map(ollama_entry).collect())
+}
+
+/// Tylko jedno narzędzie w formacie Ollama (gdy użytkownik wymusza polecenie z `/`)
+pub fn ollama_tools_only(name: &str) -> Value {
+    Value::Array(definitions().into_iter().filter(|d| d.name == name).map(ollama_entry).collect())
+}
+
+fn ollama_entry(d: ToolDef) -> Value {
+    json!({"type": "function", "function": {"name": d.name, "description": d.description, "parameters": d.parameters}})
+}
+
+/// Nazwa narzędzia z tekstu wpisanego po `/`. Ignoruje wielkość liter, `_`, `-` i spacje („daily-brief” = „Daily_Brief”).
+pub fn find(query: &str) -> Option<&'static str> {
+    let key = |s: &str| s.to_lowercase().replace(['_', '-', ' '], "");
+    let wanted = key(query);
+    definitions().into_iter().find(|d| key(d.name) == wanted).map(|d| d.name)
 }
 
 /// Wykonuje narzędzie o podanej nazwie. Zwraca JSON albo czytelny komunikat błędu.

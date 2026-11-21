@@ -104,6 +104,24 @@ Każdy zapis najpierw pokazuje podgląd, a dopiero „tak” wykonuje zmianę. T
 - [ ] Po zamknięciu i ponownym uruchomieniu aplikacji wszystkie funkcje działają (skróty, nasłuch, przypomnienia).
 - [ ] Ikona w menu nie znika po przełączeniu „Słuchaj” ani po zapisie.
 
+## 10. Okno czatu (etap 1 GUI)
+- [ ] Menu: „Otwórz czat” otwiera okno „Klaudiusz” (400×620), a ikona w pasku zostaje.
+- [ ] Zamknięcie okna czerwonym przyciskiem tylko je chowa: ikona w pasku dalej działa, a ponowne „Otwórz czat” pokazuje okno z tą samą rozmową.
+- [ ] Drugie uruchomienie aplikacji nie tworzy drugiej ikony, tylko pokazuje okno czatu.
+- [ ] Wpisz „ile mam gotówki” i Enter: pojawia się „…”, potem odpowiedź. Odpowiedź nie jest czytana na głos.
+- [ ] Czat i głos dzielą pamięć rozmowy: po poleceniu głosowym model pamięta je w czacie i odwrotnie.
+- [ ] Zapis z czatu („Dodaj zadanie TEST jutro”) pokazuje podgląd. Odpowiedz „tak” w polu czatu i sprawdź wynik w CTHX.
+- [ ] Pusta wiadomość nic nie robi. Błąd modelu pokazuje się na czerwono.
+- [ ] Zębatka otwiera ustawienia, „Jasny” i „Ciemny” zmieniają kolory, Escape i strzałka wracają do czatu.
+- [ ] Wybrany motyw zostaje po zamknięciu i ponownym otwarciu okna.
+- [ ] Ikona samolotu wysyła wiadomość. Ikona mikrofonu („Naciśnij, by nagrać”): powiedz polecenie, po ciszy tekst pojawia się w polu i nie wysyła się sam.
+- [ ] Czat głosowy (druga ikona, z falami): włączony, mówisz polecenie bez „Klaudiusz”, odpowiedź pojawia się w oknie i jest czytana. Mikrofon działa dalej po odpowiedzi. Ponowne kliknięcie wyłącza (stop w ciągu kilku sekund).
+- [ ] Przy włączonym czacie głosowym dyktowanie jest zablokowane, a przy włączonym „Słuchaj” czat głosowy się nie włącza.
+- [ ] Wpisanie „/” pokazuje listę wszystkich narzędzi z opisami. „/brie” pokazuje Daily_Brief, „/dbrf” też. Strzałki i Enter wybierają, Escape zamyka.
+- [ ] „/Daily_Brief” i Enter wysyła i zwraca podsumowanie dnia. Narzędzie wymuszone z `/` zawsze się wykonuje, nawet gdy zapytanie brzmi inaczej.
+- [ ] „/Add_Event tekst” pokazuje podgląd wydarzenia i czeka na zgodę („tak”), tak jak zwykły zapis.
+- [ ] Nieistniejące polecenie („/xyz”) zwraca komunikat, nic się nie zapisuje.
+
 ## Co przekazać po testach
 - Numer punktu, co zrobiłeś, co powiedziałeś, co Klaudiusz odpowiedział.
 - Plik `~/Library/Application Support/app.klaudiusz.assistant/listen.log` (przy problemach z nasłuchem).

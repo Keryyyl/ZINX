@@ -1,10 +1,11 @@
-//! Klaudiusz: asystent głosowy w pasku menu.
-//! Moduły odczytu, zapisów i akcji są już podpięte pod rozmowę głosową.
+//! Klaudiusz: asystent głosowy w pasku menu z oknem czatu.
+//! Jeden proces: ikona w pasku działa zawsze, okno czatu otwiera się na żądanie.
 #![allow(dead_code)]
 
 mod alerts;
 mod apps;
 mod audio;
+mod chat;
 mod cthx;
 mod cthx_write;
 mod dates;
@@ -29,7 +30,7 @@ use std::sync::Arc;
 
 use tauri::menu::{CheckMenuItem, CheckMenuItemBuilder, MenuBuilder, MenuItem, MenuItemBuilder};
 use tauri::tray::TrayIconBuilder;
-use tauri::{ActivationPolicy, App, AppHandle, Manager, RunEvent, Wry};
+use tauri::{ActivationPolicy, App, AppHandle, Manager, RunEvent, WebviewUrl, WebviewWindowBuilder, Wry, WindowEvent};
 use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 /// Skrót „Powiedz coś”
@@ -70,6 +71,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     #[cfg(target_os = "macos")]
     app.set_activation_policy(ActivationPolicy::Accessory);
 
+    let chat = MenuItemBuilder::with_id("chat", "Otwórz czat").build(app)?;
     let talk = MenuItemBuilder::with_id("talk", "Powiedz coś").accelerator(TALK_LABEL).build(app)?;
     let last: MenuItem<Wry> = MenuItemBuilder::with_id("last", "Ostatnio: —").enabled(false).build(app)?;
     let listen = CheckMenuItemBuilder::with_id("listen", "Słuchaj").checked(false).accelerator(LISTEN_LABEL).build(app)?;
@@ -77,6 +79,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
     let mute = CheckMenuItemBuilder::with_id("mute", "Wycisz głos").checked(tts::is_muted()).build(app)?;
     let quit = MenuItemBuilder::with_id("quit", "Wyjdź z Klaudiusza").build(app)?;
     let menu = MenuBuilder::new(app)
+        .item(&chat)
         .item(&talk)
         .item(&last)
         .separator()
@@ -106,6 +109,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
             let mute_item = mute.clone();
             let Some(c) = app.try_state::<Controls>() else { return };
             match event.id().as_ref() {
+                "chat" => show_chat(app),
                 "talk" => talk_now(app, &c),
                 "listen" => {
                     let on = c.listen.is_checked().unwrap_or(false);
@@ -122,6 +126,74 @@ fn setup(app: &mut App) -> Result<(), Box<dyn std::error::Error>> {
         .build(app)?;
 
     Ok(())
+}
+
+/// Otwiera okno czatu (albo pokazuje je, jeśli już istnieje)
+fn show_chat(app: &AppHandle) {
+    #[cfg(target_os = "macos")]
+    let _ = app.show();
+    if let Some(win) = app.get_webview_window("chat") {
+        let _ = win.show();
+        let _ = win.set_focus();
+        return;
+    }
+    let built = WebviewWindowBuilder::new(app, "chat", WebviewUrl::App("index.html".into()))
+        .title("Klaudiusz")
+        .inner_size(400.0, 620.0)
+        .min_inner_size(340.0, 420.0)
+        .build();
+    if let Ok(win) = built {
+        // zamknięcie okna tylko je chowa: Klaudiusz dalej działa w pasku menu
+        let hide_target = win.clone();
+        win.on_window_event(move |event| {
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                let _ = hide_target.hide();
+            }
+        });
+        let _ = win.set_focus();
+    }
+}
+
+/// Wysyła wiadomość z czatu do modelu. Model działa blokująco, więc idzie na osobnym wątku.
+#[tauri::command]
+async fn chat_send(app: AppHandle, text: String) -> Result<String, String> {
+    let text = text.trim().to_string();
+    if text.is_empty() {
+        return Err("Napisz polecenie".into());
+    }
+    let voice = app.state::<Controls>().voice.clone();
+    tauri::async_runtime::spawn_blocking(move || voice::chat_turn(&voice, &text, false))
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Nagranie do pola tekstowego: zwraca rozpoznaną mowę, nic nie wysyła
+#[tauri::command]
+async fn chat_dictate(app: AppHandle) -> Result<Option<String>, String> {
+    let voice_state = app.state::<Controls>().voice.clone();
+    if voice::is_listening(&voice_state) {
+        return Err("Najpierw wyłącz „Słuchaj”".into());
+    }
+    if chat::is_voice_on() {
+        return Err("Najpierw wyłącz czat głosowy".into());
+    }
+    tauri::async_runtime::spawn_blocking(chat::dictate)
+        .await
+        .map_err(|e| e.to_string())?
+}
+
+/// Lista poleceń do menu po wpisaniu `/`
+#[tauri::command]
+fn chat_commands() -> Vec<chat::Command> {
+    chat::commands()
+}
+
+/// Włącza albo wyłącza czat głosowy (ciągła rozmowa bez słowa aktywującego)
+#[tauri::command]
+fn chat_voice(app: AppHandle, on: bool) -> Result<(), String> {
+    let voice_state = app.state::<Controls>().voice.clone();
+    chat::set_voice(app.clone(), voice_state, on)
 }
 
 /// Pokazuje ostatnią linijkę rozmowy w menu (skrócona)
@@ -155,6 +227,8 @@ fn busy_title(app: AppHandle, listen: CheckMenuItem<Wry>) -> impl Fn(bool) + Sen
 
 pub fn run() {
     tauri::Builder::default()
+        // drugie uruchomienie nie tworzy drugiej ikony, tylko pokazuje okno czatu
+        .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_chat(app)))
         .plugin(
             tauri_plugin_global_shortcut::Builder::new()
                 .with_handler(|app, pressed, event| {
@@ -172,6 +246,7 @@ pub fn run() {
                 .build(),
         )
         .setup(setup)
+        .invoke_handler(tauri::generate_handler![chat_send, chat_dictate, chat_voice, chat_commands])
         .build(tauri::generate_context!())
         .expect("nie udało się zbudować aplikacji Klaudiusz")
         .run(|_app, event| {

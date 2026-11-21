@@ -54,12 +54,13 @@ pub struct Reply {
 }
 
 /// Jedna wymiana z użytkownikiem: dopisuje do historii i wykonuje narzędzia, aż model poda odpowiedź tekstową.
-pub fn reply(history: &mut Vec<Value>, user_text: &str) -> Result<Reply, String> {
+/// `only` ogranicza model do jednego narzędzia (polecenie z `/`), `None` daje pełną listę.
+pub fn reply(history: &mut Vec<Value>, user_text: &str, only: Option<&str>) -> Result<Reply, String> {
     history.push(json!({"role": "user", "content": user_text}));
     let mut preview = None;
     let mut tools_used = Vec::new();
     let mut rounds_s = Vec::new();
-    let result = run_rounds(history, &mut preview, &mut tools_used, &mut rounds_s);
+    let result = run_rounds(history, &mut preview, &mut tools_used, &mut rounds_s, only);
     trim(history);
     Ok(Reply { text: result?, preview, tools_used, rounds_s })
 }
@@ -69,7 +70,12 @@ fn run_rounds(
     preview: &mut Option<Preview>,
     tools_used: &mut Vec<String>,
     rounds_s: &mut Vec<f32>,
+    only: Option<&str>,
 ) -> Result<String, String> {
+    let tool_list = match only {
+        Some(name) => tools::ollama_tools_only(name),
+        None => tools::ollama_tools(),
+    };
     for _ in 0..MAX_ROUNDS {
         let started = std::time::Instant::now();
         let mut messages = vec![json!({"role": "system", "content": system_prompt()})];
@@ -80,7 +86,7 @@ fn run_rounds(
             "think": false,
             "keep_alive": KEEP_ALIVE,
             "messages": messages,
-            "tools": tools::ollama_tools(),
+            "tools": tool_list,
             "options": {"temperature": 0, "num_predict": NUM_PREDICT}
         });
         let resp: Value = ureq::post(OLLAMA_CHAT)

@@ -100,6 +100,10 @@ fn run_turn(state: &VoiceState, on_busy: &dyn Fn(bool), on_text: &dyn Fn(&str)) 
         on_text("Nasłuch jest włączony: mów „Klaudiusz” i polecenie");
         return;
     }
+    if crate::chat::is_voice_on() {
+        on_text("Czat głosowy jest włączony w oknie czatu");
+        return;
+    }
     if state.busy.swap(true, Ordering::SeqCst) {
         return;
     }
@@ -113,7 +117,7 @@ fn run_turn(state: &VoiceState, on_busy: &dyn Fn(bool), on_text: &dyn Fn(&str)) 
 }
 
 /// Nagranie jednej wypowiedzi i rozpoznanie mowy. `None` gdy nikt nic nie powiedział.
-fn capture_text() -> Result<Option<String>, String> {
+pub fn capture_text() -> Result<Option<String>, String> {
     // nie nagrywamy, dopóki Klaudiusz mówi (żeby nie słyszeć własnego głosu)
     while tts::is_speaking() {
         std::thread::sleep(Duration::from_millis(50));
@@ -135,7 +139,30 @@ fn turn(state: &VoiceState, on_text: &dyn Fn(&str)) -> Result<(), String> {
         return Ok(());
     };
     on_text(&format!("Ty: {heard}"));
-    process(state, &heard, on_text)
+    let answer = process(state, &heard, on_text, true, None)?;
+    on_text(&format!("Klaudiusz: {answer}"));
+    tts::speak(&answer)
+}
+
+/// Polecenie z okna czatu: ta sama logika co głos (narzędzia, zgody). Mowy nie robi, to wołający decyduje.
+/// `voice` tylko dobiera słowa podpowiedzi zgody („Powiedz” albo „Odpowiedz”).
+pub fn chat_turn(state: &VoiceState, text: &str, voice: bool) -> Result<String, String> {
+    // „/Nazwa tekst” wymusza użycie jednego narzędzia; tekst po nazwie to jego argumenty
+    if let Some(rest) = text.strip_prefix('/') {
+        let rest = rest.trim();
+        let (command, args) = rest.split_once(char::is_whitespace).map_or((rest, ""), |(c, a)| (c, a.trim()));
+        let Some(tool) = tools::find(command) else {
+            return Err(format!("Nie ma polecenia /{command}. Wpisz / i wybierz z listy."));
+        };
+        let message = if args.is_empty() { format!("Wykonaj {tool}") } else { args.to_string() };
+        return process(state, &message, &|_| {}, voice, Some(tool));
+    }
+    process(state, text, &|_| {}, voice, None)
+}
+
+/// Czy nasłuch ciągły jest włączony (wtedy czat głosowy i dyktowanie nie mogą używać mikrofonu)
+pub fn is_listening(state: &VoiceState) -> bool {
+    state.listening.load(Ordering::SeqCst)
 }
 
 /// Początki słowa aktywującego, bo rozpoznawanie potrafi zapisać je na kilka sposobów
@@ -248,7 +275,9 @@ fn listen_loop(state: &VoiceState, on_busy: &dyn Fn(bool), on_text: &dyn Fn(&str
                 rest
             };
             on_text(&format!("Ty: {command}"));
-            process(state, &command, on_text)
+            let answer = process(state, &command, on_text, true, None)?;
+            on_text(&format!("Klaudiusz: {answer}"));
+            tts::speak(&answer)
         })();
         if let Err(e) = result {
             on_text(&format!("Błąd: {e}"));
@@ -284,25 +313,21 @@ pub fn mute_command(text: &str) -> Option<bool> {
 }
 
 /// Potwierdzenie albo odpowiedź modelu dla rozpoznanego tekstu
-fn process(state: &VoiceState, heard: &str, on_text: &dyn Fn(&str)) -> Result<(), String> {
+/// Przetwarza jedno polecenie i zwraca odpowiedź. Nic nie mówi: to robi wołający (głos albo czat).
+/// `voice` wpływa tylko na podpowiedź przy zgodzie („Powiedz tak” / „Odpowiedz tak”).
+fn process(state: &VoiceState, heard: &str, on_text: &dyn Fn(&str), voice: bool, only: Option<&str>) -> Result<String, String> {
     if let Some(mute) = mute_command(heard) {
         tts::set_muted(mute);
-        on_text(if mute { "Głos wyciszony" } else { "Głos włączony" });
-        if !mute {
-            tts::speak("Głos włączony")?;
-        }
-        return Ok(());
+        return Ok(if mute { "Głos wyciszony".into() } else { "Głos włączony".into() });
     }
     if let Some(answer) = handle_confirmation(state, heard) {
-        on_text(&format!("Klaudiusz: {answer}"));
-        tts::speak(&answer)?;
-        return Ok(());
+        return Ok(answer);
     }
 
     let started = Instant::now();
     let reply = {
         let mut history = state.history.lock().map_err(|_| "Historia rozmowy jest niedostępna")?;
-        llm::reply(&mut history, heard)?
+        llm::reply(&mut history, heard, only)?
     };
     // czas modelu (do diagnozy opóźnień)
     log(&format!(
@@ -315,14 +340,18 @@ fn process(state: &VoiceState, heard: &str, on_text: &dyn Fn(&str)) -> Result<()
     let mut answer = reply.text;
     if let Some(preview) = reply.preview {
         on_text(&format!("Czeka na potwierdzenie (60 s): {}", preview.opis));
-        answer = format!("{} Powiedz tak albo nie.", preview.opis);
+        let hint = if voice { "Powiedz tak albo nie." } else { "Odpowiedz tak albo nie." };
+        answer = format!("{} {hint}", preview.opis);
         if let Ok(mut guard) = state.pending.lock() {
             *guard = Some(Pending { preview, since: Instant::now() });
         }
     }
-    on_text(&format!("Klaudiusz: {answer}"));
-    tts::speak(&answer)?;
-    Ok(())
+    // model czasem zwraca pustą treść: zamiast pustego dymka albo ciszy mówimy wprost, co się stało
+    if answer.trim().is_empty() {
+        log(&format!("pusta odpowiedź modelu dla: {heard:?}"));
+        answer = "Nie mam odpowiedzi na to pytanie. Spróbuj przeformułować polecenie.".into();
+    }
+    Ok(answer)
 }
 
 #[cfg(test)]
@@ -351,7 +380,7 @@ mod tests {
         let heard = stt::transcribe(std::path::Path::new(&wav)).unwrap();
         println!("rozpoznano: {heard}");
         let mut history = Vec::new();
-        let reply = llm::reply(&mut history, &heard).unwrap();
+        let reply = llm::reply(&mut history, &heard, None).unwrap();
         println!("odpowiedź: {}", reply.text);
         assert!(!reply.text.is_empty());
     }

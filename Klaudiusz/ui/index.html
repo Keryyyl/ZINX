@@ -2,7 +2,51 @@
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Klaudiusz</title>
+    <link rel="stylesheet" href="style.css" />
   </head>
-  <body></body>
+  <body>
+    <div class="app">
+      <header class="top">
+        <h1>Klaudiusz</h1>
+        <button id="gear" class="icon-btn" type="button" aria-label="Ustawienia" title="Ustawienia">⚙</button>
+      </header>
+
+      <main id="chat" class="chat" aria-live="polite">
+        <p class="hint" id="hint">Napisz polecenie, na przykład „ile mam gotówki”.</p>
+      </main>
+
+      <form id="form" class="composer">
+        <ul id="cmd-menu" class="cmd-menu" role="listbox" aria-label="Polecenia" hidden></ul>
+        <input id="input" type="text" autocomplete="off" placeholder="Napisz do Klaudiusza, albo wpisz /" aria-label="Wiadomość" />
+        <div class="actions">
+          <button id="send" class="icon-action send" type="submit" aria-label="Wyślij" title="Wyślij">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4 20-7z"/></svg>
+          </button>
+          <button id="dictate" class="icon-action" type="button" aria-label="Naciśnij, by nagrać" title="Naciśnij, by nagrać">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg>
+          </button>
+          <button id="voice-chat" class="icon-action" type="button" aria-pressed="false" aria-label="Czat głosowy" title="Czat głosowy">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6"/><path d="M21 9v6"/><rect x="9" y="4" width="6" height="10" rx="3"/><path d="M6 11a6 6 0 0 0 12 0"/><path d="M12 17v3"/></svg>
+          </button>
+        </div>
+      </form>
+
+      <section id="settings" class="settings" aria-label="Ustawienia" hidden>
+        <header class="top">
+          <button id="back" class="icon-btn" type="button" aria-label="Wróć" title="Wróć">←</button>
+          <h1>Ustawienia</h1>
+        </header>
+        <div class="row">
+          <span>Motyw</span>
+          <div class="seg" role="radiogroup" aria-label="Motyw">
+            <button type="button" role="radio" data-theme-choice="light" aria-checked="false">Jasny</button>
+            <button type="button" role="radio" data-theme-choice="dark" aria-checked="false">Ciemny</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <script src="app.js"></script>
+  </body>
 </html>
