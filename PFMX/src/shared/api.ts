@@ -69,4 +69,5 @@ export interface Api {
   financeReceiptAttach(transactionId: number): Promise<ReceiptInfo | null>
   /** otwiera paragon w domyślnej aplikacji systemu */
   financeReceiptOpen(transactionId: number): Promise<void>
+  financeReceiptRemove(transactionId: number): Promise<void>
 }

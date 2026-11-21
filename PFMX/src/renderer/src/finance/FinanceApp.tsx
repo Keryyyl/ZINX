@@ -225,6 +225,22 @@ function ReceiptActions({ transactionId }: { transactionId: number }): JSX.Eleme
     setError(null)
     window.api.financeReceiptOpen(transactionId).catch((e: unknown) => setError(String(e)))
   }
+  // usunięcie wymaga drugiego kliknięcia, żeby przypadkiem nie skasować dobrego paragonu
+  const [confirming, setConfirming] = useState(false)
+  const remove = (): void => {
+    if (!confirming) {
+      setConfirming(true)
+      return
+    }
+    setConfirming(false)
+    setBusy(true)
+    setError(null)
+    window.api
+      .financeReceiptRemove(transactionId)
+      .then(() => setInfo(null))
+      .catch((e: unknown) => setError(String(e)))
+      .finally(() => setBusy(false))
+  }
 
   return (
     <div className="fin-tx-receipts">
@@ -233,6 +249,9 @@ function ReceiptActions({ transactionId }: { transactionId: number }): JSX.Eleme
       </button>
       <button className="fin-tx-action" onClick={show} disabled={!info}>
         Wyświetl paragon
+      </button>
+      <button className="fin-tx-action fin-tx-remove" onClick={remove} disabled={busy || !info}>
+        {confirming ? 'Na pewno usunąć?' : 'Usuń paragon'}
       </button>
       {info && <span className="fin-tx-receipt-name">{info.fileName}</span>}
       {!info && <span className="fin-tx-receipt-name">brak paragonu</span>}

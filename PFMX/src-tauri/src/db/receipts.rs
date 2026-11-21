@@ -46,6 +46,13 @@ pub fn put(conn: &Connection, transaction_id: i64, file_name: &str, stored_as: &
     Ok(previous.filter(|p| p != stored_as))
 }
 
+/// Usuwa paragon z transakcji. Zwraca nazwę pliku do skasowania z dysku (jeśli paragon był).
+pub fn remove(conn: &Connection, transaction_id: i64) -> Result<Option<String>> {
+    let previous = get(conn, transaction_id)?.map(|r| r.stored_as);
+    conn.execute("DELETE FROM fin_receipts WHERE transaction_id = ?1", [transaction_id])?;
+    Ok(previous)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -78,5 +85,9 @@ mod tests {
         let info = get(&conn, tx).unwrap().unwrap();
         assert_eq!(info.file_name, "nowy.png");
         assert_eq!(info.stored_as, "1-2.png");
+
+        assert_eq!(remove(&conn, tx).unwrap().as_deref(), Some("1-2.png"));
+        assert!(get(&conn, tx).unwrap().is_none());
+        assert_eq!(remove(&conn, tx).unwrap(), None);
     }
 }

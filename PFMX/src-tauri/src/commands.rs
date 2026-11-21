@@ -284,6 +284,17 @@ pub async fn finance_receipt_attach(
     receipts::get(&*state.conn()?, transaction_id)
 }
 
+/// Usuwa paragon z transakcji i jego kopię z folderu danych. Plik kasujemy po zapisie w bazie.
+#[tauri::command]
+pub fn finance_receipt_remove(app: AppHandle, state: State<AppState>, transaction_id: i64) -> Result<()> {
+    let previous = receipts::remove(&*state.conn()?, transaction_id)?;
+    if let Some(stored) = previous {
+        // brak pliku nie jest błędem: wpis w bazie i tak zniknął
+        let _ = std::fs::remove_file(receipts_dir(&app)?.join(stored));
+    }
+    Ok(())
+}
+
 /// Otwiera paragon w domyślnej aplikacji systemu (podgląd zdjęcia albo PDF)
 #[tauri::command]
 pub fn finance_receipt_open(app: AppHandle, state: State<AppState>, transaction_id: i64) -> Result<()> {

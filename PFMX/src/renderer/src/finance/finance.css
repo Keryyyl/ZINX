@@ -2831,6 +2831,10 @@
   white-space: nowrap;
   max-width: 260px;
 }
+.fin-tx-receipts .fin-tx-remove:not(:disabled):hover {
+  color: #ff8a8a;
+  border-color: #ff8a8a;
+}
 .fin-tx-receipt-error {
   color: #ff8a8a;
   font-size: 12px;

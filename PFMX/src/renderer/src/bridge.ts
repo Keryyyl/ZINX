@@ -37,5 +37,6 @@ export const api: Api = {
   financeInvestHistory: () => invoke('finance_invest_history'),
   financeReceiptInfo: (transactionId) => invoke('finance_receipt_info', { transactionId }),
   financeReceiptAttach: (transactionId) => invoke('finance_receipt_attach', { transactionId }),
-  financeReceiptOpen: (transactionId) => invoke('finance_receipt_open', { transactionId })
+  financeReceiptOpen: (transactionId) => invoke('finance_receipt_open', { transactionId }),
+  financeReceiptRemove: (transactionId) => invoke('finance_receipt_remove', { transactionId })
 }

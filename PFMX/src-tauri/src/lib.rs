@@ -116,6 +116,7 @@ pub fn run() {
             commands::finance_receipt_info,
             commands::finance_receipt_attach,
             commands::finance_receipt_open,
+            commands::finance_receipt_remove,
         ])
         .run(tauri::generate_context!())
         .expect("nie udało się uruchomić PFMX");
