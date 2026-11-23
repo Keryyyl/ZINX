@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { Item } from '@shared/types'
+import type { Item, ItemKind } from '@shared/types'
 import { dayKey, monthGrid, parseDay } from '@shared/recurrence'
 import { dayTitle, itemsOn } from '../items'
 import DayTimeline from './DayTimeline'
@@ -28,6 +28,7 @@ export default function CalendarScreen({
   onDay,
   onToggle,
   onEdit,
+  onAdd,
   onSyncBirthdays,
   syncing
 }: {
@@ -37,6 +38,8 @@ export default function CalendarScreen({
   onDay: (day: string) => void
   onToggle: (item: Item, on: boolean, day: string) => void
   onEdit: (item: Item) => void
+  /** Dodawanie z kalendarza: okno dostaje wybrany dzień */
+  onAdd: (kind: ItemKind) => void
   onSyncBirthdays: () => void
   syncing: boolean
 }): JSX.Element {
@@ -58,6 +61,14 @@ export default function CalendarScreen({
       <div className="cthx-day-view">
         <div className="cthx-day-view-head">
           <h2>{dayTitle(day)}</h2>
+          <div className="cthx-actions">
+            <button className="cthx-ghost" onClick={() => onAdd('event')}>
+              + Wydarzenie
+            </button>
+            <button className="cthx-primary" onClick={() => onAdd('task')}>
+              + Zadanie
+            </button>
+          </div>
           <button className="btn cthx-day-close" onClick={() => setDayOpen(false)} aria-label="Wróć do kalendarza">
             ×
           </button>
@@ -74,6 +85,14 @@ export default function CalendarScreen({
           <h2 className="cthx-month">
             {new Date(view.year, view.month, 1).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })}
           </h2>
+          <div className="cthx-actions">
+            <button className="cthx-ghost" onClick={() => onAdd('event')} title="Dodaj wydarzenie na wybrany dzień">
+              + Wydarzenie
+            </button>
+            <button className="cthx-primary" onClick={() => onAdd('task')} title="Dodaj zadanie na wybrany dzień">
+              + Zadanie
+            </button>
+          </div>
           <div className="cthx-nav">
             <button className="btn" onClick={() => shift(-1)} aria-label="Poprzedni miesiąc">
               ‹

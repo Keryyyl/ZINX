@@ -177,6 +177,7 @@ export default function App(): JSX.Element {
             onDay={setDay}
             onToggle={toggle}
             onEdit={(item) => setDialog({ kind: item.kind, item })}
+            onAdd={(kind) => setDialog({ kind })}
             onSyncBirthdays={() => syncBirthdays(true)}
             syncing={syncing}
           />
