@@ -4,7 +4,7 @@
 use std::path::Path;
 use std::process::{Command, Stdio};
 
-pub const SCRIPT: &str = "/Volumes/KarolDysk/ZINX/Exporter/millennium_export.py";
+pub const SCRIPT: &str = "/Users/karol/Projekty/Prywatne/ZINX/Exporter/millennium_export.py";
 
 /// Uruchamia skrypt w tle i zapisuje jego wyjście do dziennika w katalogu aplikacji
 pub fn launch() -> Result<(), String> {
