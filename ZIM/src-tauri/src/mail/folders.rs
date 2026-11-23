@@ -47,8 +47,11 @@ pub fn pick_folders(list: &[ListedMailbox], gmail: bool) -> (ServerFolders, Vec<
 
     // w Gmailu archiwizacja = zdjęcie etykiety Inbox, wiadomość zostaje w All Mail
     let archive = if gmail { by_use("\\All").or_else(|| by_use("\\Archive")) } else { by_use("\\Archive").or_else(|| by_name("Archive")) };
-    let spam = by_use("\\Junk");
-    let trash = by_use("\\Trash");
+    // Gmail ma kosz i spam pod własnymi nazwami. Gdy flaga nie przyjdzie, bierzemy je po nazwie,
+    // zamiast zakładać nowy folder „Trash”/„Spam” (Gmail zapisuje go jako [IMAP]/Trash).
+    let by_gmail_name = |names: &[&str]| if gmail { names.iter().find_map(|n| by_name(n)) } else { None };
+    let spam = by_use("\\Junk").or_else(|| by_gmail_name(&["[Gmail]/Spam"]));
+    let trash = by_use("\\Trash").or_else(|| by_gmail_name(&["[Gmail]/Kosz", "[Gmail]/Bin", "[Gmail]/Trash"]));
 
     let mut missing = Vec::new();
     if archive.is_none() {
@@ -125,6 +128,19 @@ mod tests {
         let (f, missing) = pick_folders(&list, true);
         assert_eq!((f.archive.as_str(), f.spam.as_str(), f.trash.as_str()), ("[Gmail]/All Mail", "[Gmail]/Spam", "[Gmail]/Trash"));
         assert!(missing.is_empty());
+    }
+
+    #[test]
+    fn gmail_trash_and_spam_found_by_name_without_flags() {
+        let list = [
+            ListedMailbox::new("INBOX", None),
+            ListedMailbox::new("[Gmail]/Wszystkie", None),
+            ListedMailbox::new("[Gmail]/Spam", None),
+            ListedMailbox::new("[Gmail]/Kosz", None),
+        ];
+        let (f, missing) = pick_folders(&list, true);
+        assert_eq!((f.trash.as_str(), f.spam.as_str()), ("[Gmail]/Kosz", "[Gmail]/Spam"));
+        assert!(!missing.contains(&Missing::Trash) && !missing.contains(&Missing::Spam));
     }
 
     #[test]

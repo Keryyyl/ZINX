@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Account, MessageDetail, Tag } from '@shared/types'
 import TagChip from '../TagChip'
+import MailActions from '../MailActions'
 import Attachments from './Attachments'
 import Summary from './Summary'
 import { sanitizeEmailHtml } from './sanitize'
@@ -17,12 +18,14 @@ function splitAddress(value: string): { name: string; address: string | null } {
 interface Props {
   id: number
   accountsById: Map<number, Account>
+  /** Aktualny widok (folder): od niego zależą przyciski akcji */
+  view: string
   onClose: () => void
   /** Otwarcie oznacza wiadomość jako przeczytaną; lista musi się odświeżyć */
   onChanged: () => void
 }
 
-export default function Reader({ id, accountsById, onClose, onChanged }: Props): JSX.Element {
+export default function Reader({ id, accountsById, view, onClose, onChanged }: Props): JSX.Element {
   const [message, setMessage] = useState<MessageDetail | null | undefined>(undefined)
   const closeRef = useRef<HTMLButtonElement>(null)
   const [allTags, setAllTags] = useState<Tag[]>([])
@@ -106,6 +109,50 @@ export default function Reader({ id, accountsById, onClose, onChanged }: Props):
   const html = useMemo(() => (message?.bodyHtml ? sanitizeEmailHtml(message.bodyHtml, dark) : null), [message, dark])
   const from = message ? splitAddress(message.from) : null
   const account = message ? accountsById.get(message.accountId) : undefined
+
+  // Akcje z paska jak na liście. Przeniesienie wiadomości zamyka czytnik, bo nie ma jej już w tym widoku
+  const [actionBusy, setActionBusy] = useState(false)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const act = async (action: () => Promise<unknown>, closeAfter: boolean): Promise<void> => {
+    setActionBusy(true)
+    setActionError(null)
+    try {
+      await action()
+      onChanged()
+      if (closeAfter) onClose()
+    } catch (err) {
+      setActionError(String(err).replace(/^.*Error: /, ''))
+    } finally {
+      setActionBusy(false)
+    }
+  }
+  const toggleRead = (): void => {
+    if (!message) return
+    const read = !message.read
+    void act(() => window.api.markRead([message.id], read).then(() => setMessage({ ...message, read })), false)
+  }
+  const star = (): void => {
+    if (!message) return
+    const starred = !message.starred
+    void act(() => window.api.starMessages([message.id], starred).then(() => setMessage({ ...message, starred })), false)
+  }
+  const move = (folder: 'archive' | 'inbox' | 'trash'): void => {
+    if (!message) return
+    void act(() => window.api.moveMessages([message.id], folder), true)
+  }
+  const spam = (): void => {
+    if (!message) return
+    void act(() => window.api.markSpam([message.id]), true)
+  }
+  const notSpam = (): void => {
+    if (!message) return
+    void act(() => window.api.markNotSpam([message.id]), true)
+  }
+  const destroy = (): void => {
+    if (!message) return
+    if (!window.confirm('Usunąć na zawsze tę wiadomość? Tej operacji nie można cofnąć.')) return
+    void act(() => window.api.deleteForever([message.id]), true)
+  }
 
   return (
     <div className="modal-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
@@ -203,6 +250,26 @@ export default function Reader({ id, accountsById, onClose, onChanged }: Props):
               )}
               <Attachments key={message.id} attachments={message.attachments} />
             </header>
+            <MailActions
+              view={view}
+              busy={actionBusy}
+              allRead={message.read}
+              allStarred={message.starred}
+              onToggleRead={toggleRead}
+              onStar={star}
+              onArchive={() => move('archive')}
+              onToInbox={() => move('inbox')}
+              onSpam={spam}
+              onNotSpam={notSpam}
+              onTrash={() => move('trash')}
+              onDestroy={destroy}
+              className="reader-actions"
+            />
+            {actionError && (
+              <p className="error" role="alert">
+                {actionError}
+              </p>
+            )}
             <Summary key={message.id} message={message} />
             <div className="reader-body">
               {html ? (

@@ -181,6 +181,16 @@ button {
   gap: 12px;
   min-height: 30px;
 }
+.reader-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+.reader-actions .btn {
+  padding: 4px 10px;
+  font-size: 13px;
+}
 .toolbar .actions {
   display: flex;
   flex-wrap: wrap;

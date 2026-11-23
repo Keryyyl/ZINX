@@ -381,6 +381,7 @@ export default function App(): JSX.Element {
         <Reader
           id={openId}
           accountsById={accountsById}
+          view={tagFilter !== null || correspondent ? 'starred' : view}
           onClose={closeReader}
           onChanged={() => setVersion((v) => v + 1)}
         />

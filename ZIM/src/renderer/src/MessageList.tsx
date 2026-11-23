@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { ComposeButton, SettingsButton } from './HeaderButtons'
 import SidebarToggle from './SidebarToggle'
+import MailActions from './MailActions'
 import type { Account, MailboxView, MessageRow } from '@shared/types'
 
 /** Nazwa skrzynki w UI: alias, a gdy go brak, adres e-mail */
@@ -251,51 +252,20 @@ export default function MessageList(props: Props): JSX.Element {
                 title={allSelected ? 'Odznacz wszystkie' : 'Zaznacz wszystkie'}
               />
               <span className="selected-count">Zaznaczono: {n}</span>
-              <div className="actions">
-                <button className="btn" disabled={busy} onClick={toggleRead}>
-                  {allRead ? 'Oznacz jako nieprzeczytane' : 'Oznacz jako przeczytane'}
-                </button>
-                {view !== 'spam' && view !== 'trash' && (
-                  <button className="btn" disabled={busy} onClick={star}>
-                    {allStarred ? '☆ Usuń gwiazdkę' : '★ Oznacz gwiazdką'}
-                  </button>
-                )}
-                {(view === 'inbox' || view === 'starred' || view === 'all') && (
-                  <button className="btn" disabled={busy} onClick={archive}>
-                    Archiwizuj
-                  </button>
-                )}
-                {(view === 'archive' || view === 'trash') && (
-                  <button className="btn" disabled={busy} onClick={toInbox}>
-                    Przenieś do odebranych
-                  </button>
-                )}
-                {view === 'spam' ? (
-                  <button className="btn" disabled={busy} onClick={notSpam}>
-                    To nie spam
-                  </button>
-                ) : (
-                  view !== 'trash' && (
-                    <button
-                      className="btn"
-                      disabled={busy}
-                      onClick={spam}
-                      title="Przenosi do spamu wszystkie wiadomości od tych nadawców, także przyszłe"
-                    >
-                      Zgłoś spam
-                    </button>
-                  )
-                )}
-                {view === 'trash' ? (
-                  <button className="btn danger" disabled={busy} onClick={destroy}>
-                    Usuń na zawsze
-                  </button>
-                ) : (
-                  <button className="btn danger" disabled={busy} onClick={trash}>
-                    Usuń
-                  </button>
-                )}
-              </div>
+              <MailActions
+                view={view}
+                busy={busy}
+                allRead={allRead}
+                allStarred={allStarred}
+                onToggleRead={toggleRead}
+                onStar={star}
+                onArchive={archive}
+                onToInbox={toInbox}
+                onSpam={spam}
+                onNotSpam={notSpam}
+                onTrash={trash}
+                onDestroy={destroy}
+              />
             </>
           ) : (
             notice && <span className="notice">{notice}</span>
