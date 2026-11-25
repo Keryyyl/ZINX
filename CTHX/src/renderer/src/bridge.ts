@@ -19,5 +19,10 @@ export const api: Api = {
   habitSetDay: (habitId, date, done) => invoke('cthx_habit_set_day', { habitId, date, done }),
   kanbanList: (month, currentMonth) => invoke('cthx_kanban_list', { month, currentMonth }),
   kanbanSave: (input) => invoke('cthx_kanban_save', { input }),
-  kanbanDelete: (id) => invoke('cthx_kanban_delete', { id })
+  kanbanDelete: (id) => invoke('cthx_kanban_delete', { id }),
+  kanbanMove: (id, status, beforeId) => invoke('cthx_kanban_move', { id, status, beforeId }),
+  kanbanBoards: () => invoke('cthx_kanban_boards'),
+  kanbanBoardCreate: (name) => invoke('cthx_kanban_board_create', { name }),
+  kanbanBoardTaskCount: (id) => invoke('cthx_kanban_board_task_count', { id }),
+  kanbanBoardDelete: (id) => invoke('cthx_kanban_board_delete', { id })
 }

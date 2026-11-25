@@ -1544,3 +1544,136 @@ body.kb-dragging * {
 .kb-card *::selection {
   background: transparent;
 }
+
+/* Strony kanbanu: zakładki nad tablicą */
+.kb-pages {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 16px 8px;
+}
+
+.kb-page {
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kb-page:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.kb-page.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.kb-page:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.kb-page-add {
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.kb-page-form {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.kb-page-form input {
+  height: 30px;
+  min-width: 200px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.kb-page-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.kb-page-danger {
+  color: var(--danger, #f87171);
+  border-color: color-mix(in srgb, var(--danger, #f87171) 50%, transparent);
+}
+
+.kb-board-tag {
+  display: inline-block;
+  margin: 2px 0 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+/* Wszystkie zadania miesiąca pod panelami dnia (tylko zadania, bez wydarzeń) */
+/* lewa kolumna podziału: zadania dnia i pod nimi wszystkie zadania miesiąca, rosną razem z zawartością */
+.cthx-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 0;
+}
+.cthx-month-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cthx-month-date {
+  min-width: 56px;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.cthx-month-item.is-done .cthx-item-title span:first-child {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* Wybór strony kanbanu obok wyboru miesiąca */
+.kb-board-select {
+  height: 32px;
+  margin-left: 8px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* Miejsce wstawienia przeciąganej karty kanbanu */
+.kb-drop-marker {
+  height: 3px;
+  margin: -4px 4px 4px;
+  border-radius: 3px;
+  background: var(--accent);
+  box-shadow: 0 0 10px -2px var(--accent);
+}

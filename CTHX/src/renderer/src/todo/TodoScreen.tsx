@@ -1,8 +1,8 @@
 import type { Item, ItemKind } from '@shared/types'
-import { addDays, dayKey } from '@shared/recurrence'
-import { dayProgress, dayTitle, isDone, itemsOn } from '../items'
+import { addDays, dayKey, parseDay } from '@shared/recurrence'
+import { dayProgress, dayTitle, isDone, itemsOn, monthTasks, timeLabel } from '../items'
 import DayTimeline from '../calendar/DayTimeline'
-import ItemRow from './ItemRow'
+import ItemRow, { REPEAT_LABEL } from './ItemRow'
 
 /** Dzień w dwóch kolumnach: zadania z checkboxami i harmonogram wydarzeń z osią czasu */
 export default function TodoScreen({
@@ -32,6 +32,11 @@ export default function TodoScreen({
   const percent = total > 0 ? Math.round((done / total) * 100) : 0
   const tasksDone = tasks.filter((item) => isDone(doneSet, item, day)).length
   const eventsDone = events.filter((item) => isDone(doneSet, item, day)).length
+  // wszystkie zadania miesiąca wybranego dnia (bez wydarzeń)
+  const month = day.slice(0, 7)
+  const monthRows = monthTasks(items, month, doneSet)
+  const monthDone = monthRows.filter((row) => row.done).length
+  const monthName = parseDay(day).toLocaleDateString('pl-PL', { month: 'long', year: 'numeric' })
 
   return (
     <div className="cthx-todo">
@@ -72,6 +77,7 @@ export default function TodoScreen({
       </div>
 
       <div className="cthx-split">
+        <div className="cthx-col">
         <section className="cthx-panel cthx-panel-tasks" aria-label="Zadania">
           <header className="cthx-panel-head">
             <h3>Zadania</h3>
@@ -89,6 +95,43 @@ export default function TodoScreen({
             )}
           </div>
         </section>
+
+      <section className="cthx-panel cthx-panel-month" aria-label="Wszystkie zadania">
+        <header className="cthx-panel-head">
+          <h3>Wszystkie zadania: {monthName}</h3>
+          <span className="cthx-count">
+            <b>{monthDone}</b> / {monthRows.length}
+          </span>
+        </header>
+        <div className="cthx-panel-body">
+          {monthRows.length === 0 ? (
+            <div className="cthx-empty-line">Brak zadań w tym miesiącu.</div>
+          ) : (
+            monthRows.map((row) => {
+              const time = timeLabel(row.item)
+              return (
+                <div key={`${row.item.id}-${row.day}`} className={`cthx-item cthx-month-item ${row.done ? 'is-done' : ''}`}>
+                  <span className="cthx-month-date">
+                    {parseDay(row.day).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}
+                  </span>
+                  <div className="cthx-item-main">
+                    <div className="cthx-item-title">
+                      <span>{row.item.title}</span>
+                      {row.item.recurrence !== 'none' && <span className="cthx-tag">{REPEAT_LABEL[row.item.recurrence]}</span>}
+                    </div>
+                  </div>
+                  {time && (
+                    <div className="cthx-item-time">
+                      <span>{time}</span>
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
+        </div>
+      </section>
+        </div>
 
         <section className="cthx-panel cthx-panel-plan" aria-label="Wydarzenia">
           <header className="cthx-panel-head">

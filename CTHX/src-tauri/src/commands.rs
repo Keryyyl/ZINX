@@ -33,7 +33,11 @@ pub fn cthx_done_list(state: State<AppState>) -> Result<Vec<Done>> {
 
 #[tauri::command]
 pub fn cthx_item_save(state: State<AppState>, input: ItemInput) -> Result<i64> {
-    db::save(&*state.conn()?, &input)
+    let conn = state.conn()?;
+    let id = db::save(&conn, &input)?;
+    // tytuł i dzień zmienione w kalendarzu od razu trafiają do połączonych kart kanbanu
+    kanban::sync_linked(&conn)?;
+    Ok(id)
 }
 
 #[tauri::command]
@@ -43,7 +47,10 @@ pub fn cthx_item_delete(state: State<AppState>, id: i64) -> Result<()> {
 
 #[tauri::command]
 pub fn cthx_item_set_done(state: State<AppState>, item_id: i64, date: String, done: bool) -> Result<()> {
-    db::set_done(&*state.conn()?, item_id, &date, done)
+    let conn = state.conn()?;
+    db::set_done(&conn, item_id, &date, done)?;
+    // połączona karta kanbanu idzie za oznaczeniem: „Zrobione” albo z powrotem „Do zrobienia”
+    kanban::on_calendar_done(&conn, item_id, &date, done)
 }
 
 /// Czyta urodziny z kontaktów i zapisuje je jako coroczne wydarzenia. Pierwsze uruchomienie pyta o dostęp.
@@ -92,7 +99,34 @@ pub fn cthx_kanban_save(state: State<AppState>, input: KanbanInput) -> Result<i6
     kanban::save(&*state.conn()?, &input)
 }
 
+/// Przeniesienie karty do kolumny i przed wskazaną kartę (`before_id`, `None` = na koniec)
+#[tauri::command]
+pub fn cthx_kanban_move(state: State<AppState>, id: i64, status: String, before_id: Option<i64>) -> Result<()> {
+    kanban::move_card(&*state.conn()?, id, &status, before_id)
+}
+
 #[tauri::command]
 pub fn cthx_kanban_delete(state: State<AppState>, id: i64) -> Result<()> {
     kanban::delete(&*state.conn()?, id)
+}
+
+#[tauri::command]
+pub fn cthx_kanban_boards(state: State<AppState>) -> Result<Vec<kanban::KanbanBoard>> {
+    kanban::boards(&*state.conn()?)
+}
+
+#[tauri::command]
+pub fn cthx_kanban_board_create(state: State<AppState>, name: String) -> Result<i64> {
+    kanban::create_board(&*state.conn()?, &name)
+}
+
+/// Ile zadań ma strona (do ostrzeżenia przed usunięciem)
+#[tauri::command]
+pub fn cthx_kanban_board_task_count(state: State<AppState>, id: i64) -> Result<i64> {
+    kanban::board_task_count(&*state.conn()?, id)
+}
+
+#[tauri::command]
+pub fn cthx_kanban_board_delete(state: State<AppState>, id: i64) -> Result<()> {
+    kanban::delete_board(&*state.conn()?, id)
 }

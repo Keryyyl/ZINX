@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { KANBAN_COLUMNS, type KanbanStatus, type KanbanTask } from '@shared/kanban'
+import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from 'react'
+import { KANBAN_COLUMNS, type KanbanBoard, type KanbanStatus, type KanbanTask } from '@shared/kanban'
 import { dayKey, parseDay } from '@shared/recurrence'
 import KanbanDialog from './KanbanDialog'
 
@@ -7,6 +7,9 @@ const pad = (n: number): string => String(n).padStart(2, '0')
 
 /** Ruch wskaźnikiem krótszy niż tyle pikseli to jeszcze nie przeciąganie (zostaje zwykłe kliknięcie) */
 const DRAG_THRESHOLD = 5
+
+/** Wybrana strona: konkretna (id) albo „Wszystkie” */
+type ActiveBoard = number | 'all'
 
 /** Stan trwającego przeciągania: karta, pozycja wskaźnika i czy próg już przekroczono */
 interface DragState {
@@ -17,10 +20,13 @@ interface DragState {
   y: number
   active: boolean
   over: KanbanStatus | null
+  /** karta, przed którą zostanie wstawiona przeciągana (null = na koniec kolumny) */
+  before: number | null
 }
 
 /**
- * Kanban: trzy kolumny dla przeglądanego miesiąca. Kartę przeciąga się myszką do innej kolumny.
+ * Kanban: strony (np. „Prezenty”, „Programowanie”) i na każdej trzy kolumny dla przeglądanego miesiąca.
+ * „Wszystkie” pokazuje zadania ze wszystkich stron. Kartę przeciąga się myszką do innej kolumny.
  * Zadania „Do zrobienia” z poprzednich miesięcy przechodzą do bieżącego.
  */
 export default function KanbanScreen(): JSX.Element {
@@ -36,14 +42,24 @@ export default function KanbanScreen(): JSX.Element {
   }
 
   const [tasks, setTasks] = useState<KanbanTask[] | null>(null)
+  const [boards, setBoards] = useState<KanbanBoard[]>([])
+  const [active, setActive] = useState<ActiveBoard>('all')
   const [dialog, setDialog] = useState<{ task?: KanbanTask } | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [drag, setDrag] = useState<DragState | null>(null)
   const dragRef = useRef<DragState | null>(null)
 
+  // dodawanie strony i usuwanie strony (drugie kliknięcie potwierdza, z liczbą zadań do skasowania)
+  const [newBoardName, setNewBoardName] = useState<string | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ id: number; count: number } | null>(null)
+
   const reload = useCallback(async (): Promise<void> => {
     try {
-      setTasks(await window.api.kanbanList(month, currentMonth))
+      const [list, allBoards] = await Promise.all([window.api.kanbanList(month, currentMonth), window.api.kanbanBoards()])
+      setTasks(list)
+      setBoards(allBoards)
+      // usunięta strona nie może zostać wybrana
+      setActive((cur) => (cur !== 'all' && !allBoards.some((b) => b.id === cur) ? 'all' : cur))
       setError(null)
     } catch (e: unknown) {
       setError(String(e))
@@ -61,9 +77,10 @@ export default function KanbanScreen(): JSX.Element {
       .catch((e: unknown) => setError(String(e)))
   }
 
-  const moveTo = (task: KanbanTask, status: KanbanStatus): void => {
-    if (task.status === status) return
-    run(() => window.api.kanbanSave({ id: task.id, month: task.month, status, title: task.title, description: task.description }))
+  // przeniesienie (albo przestawienie w kolumnie) przed wskazaną kartą; zmianę kolumny i kolejność robi rdzeń
+  const moveTo = (task: KanbanTask, status: KanbanStatus, before: number | null): void => {
+    if (before === task.id) return
+    run(() => window.api.kanbanMove(task.id, status, before))
   }
   // aktualna wersja funkcji dla obsługi zdarzeń wskaźnika (ta rejestrowana raz nie widzi nowych stanów)
   const moveRef = useRef(moveTo)
@@ -76,15 +93,29 @@ export default function KanbanScreen(): JSX.Element {
       if (!d) return
       if (!d.active && Math.hypot(e.clientX - d.startX, e.clientY - d.startY) < DRAG_THRESHOLD) return
       const el = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null
-      const col = el?.closest<HTMLElement>('[data-status]')?.dataset.status as KanbanStatus | undefined
-      dragRef.current = { ...d, active: true, x: e.clientX, y: e.clientY, over: col ?? null }
+      const colEl = el?.closest<HTMLElement>('[data-status]')
+      const col = colEl?.dataset.status as KanbanStatus | undefined
+      // wstawienie przed pierwszą kartą kolumny, której środek jest poniżej wskaźnika (pomijamy przeciąganą kartę)
+      let before: number | null = null
+      if (colEl) {
+        for (const card of colEl.querySelectorAll<HTMLElement>('[data-card-id]')) {
+          const id = Number(card.dataset.cardId)
+          if (id === d.task.id) continue
+          const box = card.getBoundingClientRect()
+          if (e.clientY < box.top + box.height / 2) {
+            before = id
+            break
+          }
+        }
+      }
+      dragRef.current = { ...d, active: true, x: e.clientX, y: e.clientY, over: col ?? null, before }
       setDrag(dragRef.current)
     }
     const onUp = (): void => {
       const d = dragRef.current
       dragRef.current = null
       setDrag(null)
-      if (d?.active && d.over) moveRef.current(d.task, d.over)
+      if (d?.active && d.over) moveRef.current(d.task, d.over, d.before)
     }
     window.addEventListener('pointermove', onMove)
     window.addEventListener('pointerup', onUp)
@@ -104,9 +135,50 @@ export default function KanbanScreen(): JSX.Element {
   const startDrag = (task: KanbanTask, e: ReactPointerEvent): void => {
     // przyciski na karcie (edycja, usuwanie) działają jak zwykle
     if (e.button !== 0 || (e.target as HTMLElement).closest('button')) return
-    dragRef.current = { task, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, active: false, over: null }
+    dragRef.current = { task, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, active: false, over: null, before: null }
   }
 
+  const createBoard = (e: FormEvent): void => {
+    e.preventDefault()
+    const name = (newBoardName ?? '').trim()
+    if (!name) return
+    setError(null)
+    window.api
+      .kanbanBoardCreate(name)
+      .then((id) => {
+        setNewBoardName(null)
+        setActive(id)
+        return reload()
+      })
+      .catch((err: unknown) => setError(String(err)))
+  }
+
+  const askDeleteBoard = (id: number): void => {
+    setError(null)
+    window.api
+      .kanbanBoardTaskCount(id)
+      .then((count) => setConfirmDelete({ id, count }))
+      .catch((err: unknown) => setError(String(err)))
+  }
+
+  const deleteBoard = (id: number): void => {
+    setConfirmDelete(null)
+    run(() => window.api.kanbanBoardDelete(id).then(() => setActive('all')))
+  }
+
+  // wybór z listy: „Stwórz Stronę” otwiera pole na nazwę, pozostałe opcje przełączają widok
+  const pickBoard = (value: string): void => {
+    if (value === 'create') {
+      setNewBoardName('');
+      return;
+    }
+    setNewBoardName(null);
+    setActive(value === 'all' ? 'all' : Number(value));
+  }
+  const shown = (tasks ?? []).filter((t) => active === 'all' || t.boardId === active)
+  const activeBoard = typeof active === 'number' ? boards.find((b) => b.id === active) ?? null : null
+  // zadanie nowe trafia na przeglądaną stronę, a w „Wszystkich” na pierwszą
+  const defaultBoardId = activeBoard?.id ?? boards[0]?.id ?? 0
   const overColumn = drag?.active ? drag.over : null
 
   return (
@@ -129,23 +201,87 @@ export default function KanbanScreen(): JSX.Element {
                 </button>
               )}
             </div>
+            <select
+              className="kb-board-select"
+              value={active === 'all' ? 'all' : String(active)}
+              onChange={(e) => pickBoard(e.target.value)}
+              aria-label="Strona kanbanu"
+            >
+              <option value="all">Wszystkie</option>
+              {boards.map((b) => (
+                <option key={b.id} value={String(b.id)}>
+                  {b.name}
+                </option>
+              ))}
+              <option value="create">Stwórz Stronę</option>
+            </select>
           </div>
           <div className="cthx-actions">
-            <button className="kb-plus" onClick={() => setDialog({})} aria-label="Dodaj zadanie" title="Dodaj zadanie">
+            <button
+              className="kb-plus"
+              onClick={() => setDialog({})}
+              disabled={boards.length === 0}
+              aria-label="Dodaj zadanie"
+              title={boards.length === 0 ? 'Najpierw dodaj stronę' : 'Dodaj zadanie'}
+            >
               +
             </button>
           </div>
         </div>
       </div>
 
+      {newBoardName !== null && (
+        <form className="kb-page-form kb-create-board" onSubmit={createBoard}>
+          <input
+            autoFocus
+            value={newBoardName}
+            onChange={(e) => setNewBoardName(e.target.value)}
+            onKeyDown={(e) => e.key === 'Escape' && setNewBoardName(null)}
+            maxLength={40}
+            placeholder="Nazwa nowej strony, np. Prezenty"
+            aria-label="Nazwa nowej strony"
+          />
+          <button type="submit" className="kb-page" disabled={!newBoardName.trim()}>
+            Stwórz
+          </button>
+          <button type="button" className="kb-page" onClick={() => setNewBoardName(null)}>
+            Anuluj
+          </button>
+        </form>
+      )}
+
+      {activeBoard && (
+        <div className="kb-page-tools">
+          {confirmDelete?.id === activeBoard.id ? (
+            <>
+              <span>
+                Usunąć stronę „{activeBoard.name}”{confirmDelete.count > 0 ? ` razem z ${confirmDelete.count} zadaniami` : ''}?
+              </span>
+              <button className="kb-page kb-page-danger" onClick={() => deleteBoard(activeBoard.id)}>
+                Tak, usuń
+              </button>
+              <button className="kb-page" onClick={() => setConfirmDelete(null)}>
+                Nie
+              </button>
+            </>
+          ) : (
+            <button className="kb-page kb-page-danger" onClick={() => askDeleteBoard(activeBoard.id)}>
+              Usuń stronę
+            </button>
+          )}
+        </div>
+      )}
+
       {error && <div className="error cthx-error">{error}</div>}
 
       {tasks === null ? (
         <div className="fin-empty">Ładowanie…</div>
+      ) : boards.length === 0 ? (
+        <div className="fin-empty">Nie ma jeszcze żadnej strony. Dodaj pierwszą, np. „Prezenty” albo „Programowanie”.</div>
       ) : (
         <div className="kb-board">
           {KANBAN_COLUMNS.map((col) => {
-            const inColumn = tasks.filter((t) => t.status === col.id)
+            const inColumn = shown.filter((t) => t.status === col.id)
             return (
               <section key={col.id} data-status={col.id} className={`kb-col ${overColumn === col.id ? 'is-over' : ''}`} aria-label={col.label}>
                 <header className="kb-col-head">
@@ -154,15 +290,20 @@ export default function KanbanScreen(): JSX.Element {
                 </header>
                 {inColumn.length === 0 && <p className="kb-empty">Brak zadań</p>}
                 {inColumn.map((task) => (
-                  <TaskCard
+                  <Fragment key={task.id}>
+                    {overColumn === col.id && drag?.before === task.id && <div className="kb-drop-marker" aria-hidden />}
+                    <TaskCard
                     key={task.id}
                     task={task}
+                    showBoard={active === 'all'}
                     dragging={drag?.active === true && drag.task.id === task.id}
                     onPointerDown={(e) => startDrag(task, e)}
                     onEdit={() => setDialog({ task })}
                     onDelete={() => run(() => window.api.kanbanDelete(task.id))}
                   />
+                  </Fragment>
                 ))}
+                {overColumn === col.id && drag?.before === null && <div className="kb-drop-marker" aria-hidden />}
               </section>
             )
           })}
@@ -175,10 +316,12 @@ export default function KanbanScreen(): JSX.Element {
         </div>
       )}
 
-      {dialog && (
+      {dialog && boards.length > 0 && (
         <KanbanDialog
           task={dialog.task}
           month={month}
+          boards={boards}
+          defaultBoardId={defaultBoardId}
           onClose={() => setDialog(null)}
           onSaved={() => {
             setDialog(null)
@@ -193,12 +336,15 @@ export default function KanbanScreen(): JSX.Element {
 /** Karta zadania: tytuł i opis, zębatka do edycji, × do usunięcia (drugie kliknięcie potwierdza) */
 function TaskCard({
   task,
+  showBoard,
   dragging,
   onPointerDown,
   onEdit,
   onDelete
 }: {
   task: KanbanTask
+  /** w widoku „Wszystkie” karta pokazuje, z której jest strony */
+  showBoard: boolean
   dragging: boolean
   onPointerDown: (e: ReactPointerEvent) => void
   onEdit: () => void
@@ -207,6 +353,7 @@ function TaskCard({
   const [armed, setArmed] = useState(false)
   return (
     <article
+      data-card-id={task.id}
       className={`kb-card ${dragging ? 'is-dragging' : ''}`}
       onPointerDown={onPointerDown}
       // przytrzymanie karty nie zaznacza jej tekstu (zaznaczanie zaczyna się od mousedown)
@@ -236,6 +383,7 @@ function TaskCard({
           </button>
         </div>
       </div>
+      {showBoard && <span className="kb-board-tag">{task.boardName}</span>}
       {task.description && <p className="kb-desc">{task.description}</p>}
     </article>
   )

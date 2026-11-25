@@ -54,6 +54,11 @@ pub fn run() {
             commands::cthx_kanban_list,
             commands::cthx_kanban_save,
             commands::cthx_kanban_delete,
+            commands::cthx_kanban_move,
+            commands::cthx_kanban_boards,
+            commands::cthx_kanban_board_create,
+            commands::cthx_kanban_board_task_count,
+            commands::cthx_kanban_board_delete,
         ])
         .run(tauri::generate_context!())
         .expect("nie udało się uruchomić CTHX");

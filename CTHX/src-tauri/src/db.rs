@@ -121,6 +121,7 @@ fn init(conn: Connection) -> Result<Connection> {
     conn.pragma_update(None, "foreign_keys", "OFF")?;
     migrate(&conn)?;
     conn.execute_batch(SCHEMA)?;
+    crate::kanban::migrate(&conn)?;
     conn.pragma_update(None, "foreign_keys", "ON")?;
     Ok(conn)
 }
