@@ -1677,3 +1677,126 @@ body.kb-dragging * {
   background: var(--accent);
   box-shadow: 0 0 10px -2px var(--accent);
 }
+
+/* Lista To-do: panele lekko przezroczyste, żeby było widać tło w kropki */
+.cthx-todo .cthx-panel {
+  background: color-mix(in srgb, var(--cthx-panel) 72%, transparent);
+}
+
+/* Wiersz „Wszystkie zadania”: data obok tego samego wiersza co przy zadaniach dnia */
+.cthx-month-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.cthx-month-row .cthx-month-item {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Wybór strony kanbanu: wygląd jak wybór miesiąca, z jedną strzałką w dół */
+.kb-board-seg {
+  position: relative;
+  margin-left: 8px;
+}
+.kb-board-pick {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kb-board-pick:hover {
+  background: var(--hover);
+}
+.kb-board-caret {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+.kb-board-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 100%;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--cthx-panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 12px 30px -12px rgba(0, 0, 0, 0.6);
+}
+.kb-board-menu button {
+  display: block;
+  width: 100%;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.kb-board-menu button:hover,
+.kb-board-menu button.is-active {
+  background: var(--hover);
+}
+.kb-board-menu button.is-active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Usuń stronę: szary, obok wyboru strony */
+.kb-board-delete {
+  height: 28px;
+  margin-left: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.kb-board-delete:hover {
+  color: var(--text);
+  background: var(--hover);
+}
+
+/* Potwierdzenie usunięcia strony */
+.kb-confirm {
+  width: min(380px, calc(100vw - 32px));
+}
+.kb-confirm-text {
+  margin: 0;
+  padding: 18px 4px 6px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.kb-confirm-yes {
+  height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--danger, #f87171);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}

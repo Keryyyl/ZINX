@@ -2,6 +2,7 @@ import { Fragment, useCallback, useEffect, useRef, useState, type FormEvent, typ
 import { KANBAN_COLUMNS, type KanbanBoard, type KanbanStatus, type KanbanTask } from '@shared/kanban'
 import { dayKey, parseDay } from '@shared/recurrence'
 import KanbanDialog from './KanbanDialog'
+import { DeleteBoardDialog, NewBoardDialog } from './BoardDialogs'
 
 const pad = (n: number): string => String(n).padStart(2, '0')
 
@@ -50,8 +51,27 @@ export default function KanbanScreen(): JSX.Element {
   const dragRef = useRef<DragState | null>(null)
 
   // dodawanie strony i usuwanie strony (drugie kliknięcie potwierdza, z liczbą zadań do skasowania)
-  const [newBoardName, setNewBoardName] = useState<string | null>(null)
-  const [confirmDelete, setConfirmDelete] = useState<{ id: number; count: number } | null>(null)
+  const [boardDialog, setBoardDialog] = useState(false)
+  const [deleteDialog, setDeleteDialog] = useState<{ id: number; name: string; count: number } | null>(null)
+  const [boardMenu, setBoardMenu] = useState(false)
+  const boardMenuRef = useRef<HTMLDivElement>(null)
+
+  // menu stron zamyka się po kliknięciu poza nim i po Escape
+  useEffect(() => {
+    if (!boardMenu) return
+    const onDown = (e: MouseEvent): void => {
+      if (!boardMenuRef.current?.contains(e.target as Node)) setBoardMenu(false)
+    }
+    const onKey = (e: KeyboardEvent): void => {
+      if (e.key === 'Escape') setBoardMenu(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [boardMenu])
 
   const reload = useCallback(async (): Promise<void> => {
     try {
@@ -138,42 +158,29 @@ export default function KanbanScreen(): JSX.Element {
     dragRef.current = { task, startX: e.clientX, startY: e.clientY, x: e.clientX, y: e.clientY, active: false, over: null, before: null }
   }
 
-  const createBoard = (e: FormEvent): void => {
-    e.preventDefault()
-    const name = (newBoardName ?? '').trim()
-    if (!name) return
-    setError(null)
-    window.api
-      .kanbanBoardCreate(name)
-      .then((id) => {
-        setNewBoardName(null)
-        setActive(id)
-        return reload()
-      })
-      .catch((err: unknown) => setError(String(err)))
-  }
-
   const askDeleteBoard = (id: number): void => {
+    const board = boards.find((b) => b.id === id)
+    if (!board) return
     setError(null)
     window.api
       .kanbanBoardTaskCount(id)
-      .then((count) => setConfirmDelete({ id, count }))
+      .then((count) => setDeleteDialog({ id, name: board.name, count }))
       .catch((err: unknown) => setError(String(err)))
   }
 
   const deleteBoard = (id: number): void => {
-    setConfirmDelete(null)
+    setDeleteDialog(null)
     run(() => window.api.kanbanBoardDelete(id).then(() => setActive('all')))
   }
 
-  // wybór z listy: „Stwórz Stronę” otwiera pole na nazwę, pozostałe opcje przełączają widok
-  const pickBoard = (value: string): void => {
+  // wybór z menu: „Stwórz Stronę” otwiera okno nowej strony, pozostałe opcje przełączają widok
+  const pickBoard = (value: 'all' | number | 'create'): void => {
+    setBoardMenu(false)
     if (value === 'create') {
-      setNewBoardName('');
-      return;
+      setBoardDialog(true)
+      return
     }
-    setNewBoardName(null);
-    setActive(value === 'all' ? 'all' : Number(value));
+    setActive(value)
   }
   const shown = (tasks ?? []).filter((t) => active === 'all' || t.boardId === active)
   const activeBoard = typeof active === 'number' ? boards.find((b) => b.id === active) ?? null : null
@@ -201,20 +208,44 @@ export default function KanbanScreen(): JSX.Element {
                 </button>
               )}
             </div>
-            <select
-              className="kb-board-select"
-              value={active === 'all' ? 'all' : String(active)}
-              onChange={(e) => pickBoard(e.target.value)}
-              aria-label="Strona kanbanu"
-            >
-              <option value="all">Wszystkie</option>
-              {boards.map((b) => (
-                <option key={b.id} value={String(b.id)}>
-                  {b.name}
-                </option>
-              ))}
-              <option value="create">Stwórz Stronę</option>
-            </select>
+            <div className="cthx-seg kb-board-seg" ref={boardMenuRef}>
+              <button
+                className="kb-board-pick"
+                onClick={() => setBoardMenu((open) => !open)}
+                aria-haspopup="listbox"
+                aria-expanded={boardMenu}
+                aria-label="Strona kanbanu"
+              >
+                <span>{activeBoard ? activeBoard.name : 'Wszystkie'}</span>
+                <span className="kb-board-caret" aria-hidden>
+                  ▾
+                </span>
+              </button>
+              {boardMenu && (
+                <ul className="kb-board-menu" role="listbox" aria-label="Strony">
+                  <li role="option" aria-selected={active === 'all'}>
+                    <button className={active === 'all' ? 'is-active' : ''} onClick={() => pickBoard('all')}>
+                      Wszystkie
+                    </button>
+                  </li>
+                  {boards.map((b) => (
+                    <li key={b.id} role="option" aria-selected={active === b.id}>
+                      <button className={active === b.id ? 'is-active' : ''} onClick={() => pickBoard(b.id)}>
+                        {b.name}
+                      </button>
+                    </li>
+                  ))}
+                  <li role="option" aria-selected={false}>
+                    <button onClick={() => pickBoard('create')}>Stwórz Stronę</button>
+                  </li>
+                </ul>
+              )}
+            </div>
+            {activeBoard && (
+              <button className="kb-board-delete" onClick={() => askDeleteBoard(activeBoard.id)}>
+                Usuń stronę
+              </button>
+            )}
           </div>
           <div className="cthx-actions">
             <button
@@ -229,48 +260,6 @@ export default function KanbanScreen(): JSX.Element {
           </div>
         </div>
       </div>
-
-      {newBoardName !== null && (
-        <form className="kb-page-form kb-create-board" onSubmit={createBoard}>
-          <input
-            autoFocus
-            value={newBoardName}
-            onChange={(e) => setNewBoardName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Escape' && setNewBoardName(null)}
-            maxLength={40}
-            placeholder="Nazwa nowej strony, np. Prezenty"
-            aria-label="Nazwa nowej strony"
-          />
-          <button type="submit" className="kb-page" disabled={!newBoardName.trim()}>
-            Stwórz
-          </button>
-          <button type="button" className="kb-page" onClick={() => setNewBoardName(null)}>
-            Anuluj
-          </button>
-        </form>
-      )}
-
-      {activeBoard && (
-        <div className="kb-page-tools">
-          {confirmDelete?.id === activeBoard.id ? (
-            <>
-              <span>
-                Usunąć stronę „{activeBoard.name}”{confirmDelete.count > 0 ? ` razem z ${confirmDelete.count} zadaniami` : ''}?
-              </span>
-              <button className="kb-page kb-page-danger" onClick={() => deleteBoard(activeBoard.id)}>
-                Tak, usuń
-              </button>
-              <button className="kb-page" onClick={() => setConfirmDelete(null)}>
-                Nie
-              </button>
-            </>
-          ) : (
-            <button className="kb-page kb-page-danger" onClick={() => askDeleteBoard(activeBoard.id)}>
-              Usuń stronę
-            </button>
-          )}
-        </div>
-      )}
 
       {error && <div className="error cthx-error">{error}</div>}
 
@@ -314,6 +303,26 @@ export default function KanbanScreen(): JSX.Element {
         <div className="kb-ghost" style={{ left: drag.x + 14, top: drag.y + 10 }} aria-hidden>
           {drag.task.title}
         </div>
+      )}
+
+      {boardDialog && (
+        <NewBoardDialog
+          onClose={() => setBoardDialog(false)}
+          onCreated={(id) => {
+            setBoardDialog(false)
+            setActive(id)
+            void reload()
+          }}
+        />
+      )}
+
+      {deleteDialog && (
+        <DeleteBoardDialog
+          name={deleteDialog.name}
+          count={deleteDialog.count}
+          onCancel={() => setDeleteDialog(null)}
+          onConfirm={() => deleteBoard(deleteDialog.id)}
+        />
       )}
 
       {dialog && boards.length > 0 && (

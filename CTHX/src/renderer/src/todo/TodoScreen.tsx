@@ -1,8 +1,8 @@
 import type { Item, ItemKind } from '@shared/types'
 import { addDays, dayKey, parseDay } from '@shared/recurrence'
-import { dayProgress, dayTitle, isDone, itemsOn, monthTasks, timeLabel } from '../items'
+import { dayProgress, dayTitle, isDone, itemsOn, monthTasks } from '../items'
 import DayTimeline from '../calendar/DayTimeline'
-import ItemRow, { REPEAT_LABEL } from './ItemRow'
+import ItemRow from './ItemRow'
 
 /** Dzień w dwóch kolumnach: zadania z checkboxami i harmonogram wydarzeń z osią czasu */
 export default function TodoScreen({
@@ -107,27 +107,14 @@ export default function TodoScreen({
           {monthRows.length === 0 ? (
             <div className="cthx-empty-line">Brak zadań w tym miesiącu.</div>
           ) : (
-            monthRows.map((row) => {
-              const time = timeLabel(row.item)
-              return (
-                <div key={`${row.item.id}-${row.day}`} className={`cthx-item cthx-month-item ${row.done ? 'is-done' : ''}`}>
-                  <span className="cthx-month-date">
-                    {parseDay(row.day).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}
-                  </span>
-                  <div className="cthx-item-main">
-                    <div className="cthx-item-title">
-                      <span>{row.item.title}</span>
-                      {row.item.recurrence !== 'none' && <span className="cthx-tag">{REPEAT_LABEL[row.item.recurrence]}</span>}
-                    </div>
-                  </div>
-                  {time && (
-                    <div className="cthx-item-time">
-                      <span>{time}</span>
-                    </div>
-                  )}
+            monthRows.map((row) => (
+              <div key={`${row.item.id}-${row.day}`} className="cthx-month-row">
+                <span className="cthx-month-date">{parseDay(row.day).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' })}</span>
+                <div className="cthx-month-item">
+                  <ItemRow item={row.item} day={row.day} doneSet={doneSet} onToggle={onToggle} onEdit={onEdit} onDelete={onDelete} />
                 </div>
-              )
-            })
+              </div>
+            ))
           )}
         </div>
       </section>
